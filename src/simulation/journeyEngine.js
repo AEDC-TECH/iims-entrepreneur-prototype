@@ -37,6 +37,42 @@ const STAGES = [
     title: "Competition & Strategy",
     focus: "Strategy",
   },
+  {
+    day: 7,
+    month: "July",
+    title: "Growth Pressure",
+    focus: "Operations & Growth",
+  },
+  {
+    day: 8,
+    month: "August",
+    title: "Customer & Market Pressure",
+    focus: "Customers & Market",
+  },
+  {
+    day: 9,
+    month: "September",
+    title: "Operational Crisis",
+    focus: "Operations & Resilience",
+  },
+  {
+    day: 10,
+    month: "October",
+    title: "Expansion Decision",
+    focus: "Expansion",
+  },
+  {
+    day: 11,
+    month: "November",
+    title: "Financial Performance",
+    focus: "Financial Management",
+  },
+  {
+    day: 12,
+    month: "December",
+    title: "Year-End Strategy & Review",
+    focus: "Strategy & Review",
+  },
 ];
 
 

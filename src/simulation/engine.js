@@ -1,4 +1,14 @@
 import {
+  calculateBusinessHealth,
+} from "./businessHealthEngine";
+
+import {
+  applyDecisionOperationalImpact,
+  applyTaskOperationalImpact,
+  applyOperationalCarryover,
+} from "./operationalImpactEngine";
+
+import {
   ensureCharacters,
   updateRelationship,
 } from "./relationshipEngine";
@@ -11,6 +21,12 @@ import {
   createInitialState,
   STORAGE_KEY,
 } from "./initialState";
+
+import {
+  createIssueFromTask,
+  processOpenBusinessIssues,
+  resolveIssueForTask,
+} from "./businessIssueEngine";
 
 const clamp = (value, min, max) => {
   return Math.min(max, Math.max(min, value));
@@ -287,6 +303,14 @@ export const makeDecision = (
     }
   );
 
+  nextState =
+    applyDecisionOperationalImpact(
+      nextState,
+      scenario,
+      decision
+    );
+
+
   return nextState;
 };
 
@@ -441,7 +465,7 @@ export const canAdvanceToDay = (
   return elapsedDays >= nextDay;
 };
 
-export const advanceDay = (
+const advanceDayBase = (
   state
 ) => {
   if (!state.dayComplete) {
@@ -1023,7 +1047,7 @@ export const resolveBusinessEvent = (
 };
 
 
-export const completeBusinessTask = (
+const completeBusinessTaskBase = (
   state,
   task
 ) => {
@@ -1121,7 +1145,7 @@ export const completeBusinessTask = (
 };
 
 
-export const postponeBusinessTask = (
+const postponeBusinessTaskBase = (
   state,
   task
 ) => {
@@ -1355,72 +1379,12 @@ export const calculateNetAssetPosition = (
   );
 };
 
-export const calculateBusinessHealth = (
-  business
-) => {
-  let score = 50;
-
-  const profit =
-    calculateProfit(business);
-
-  if (
-    business.cash >
-    business.expenses
-  ) {
-    score += 12;
-  }
-
-  if (
-    business.cash <
-    business.expenses * 0.5
-  ) {
-    score -= 12;
-  }
-
-  if (profit > 0) {
-    score += 10;
-  }
-
-  if (profit < 0) {
-    score -= 15;
-  }
-
-  if (business.risk < 40) {
-    score += 8;
-  }
-
-  if (business.risk > 70) {
-    score -= 12;
-  }
-
-  if (
-    business.employeeMorale > 70
-  ) {
-    score += 5;
-  }
-
-  if (
-    business.employeeMorale < 40
-  ) {
-    score -= 7;
-  }
-
-  if (
-    business.customerSatisfaction >
-    70
-  ) {
-    score += 5;
-  }
-
-  if (
-    business.customerSatisfaction <
-    40
-  ) {
-    score -= 7;
-  }
-
-  return clamp(score, 0, 100);
+export {
+  calculateBusinessHealth,
 };
+
+
+
 
 export const getFinancialDashboard = (
   state
@@ -1762,5 +1726,114 @@ export const getAdvisorInsights = (
 
     reflectionsReviewed:
       state.reflections.length,
+  };
+};
+
+
+
+// ==========================================================
+// PERSISTENT BUSINESS ISSUE INTEGRATION
+// ==========================================================
+
+
+/*
+ * Complete the normal task first.
+ *
+ * If this task was previously postponed
+ * and created an open business issue,
+ * completing it now resolves that issue.
+ */
+export const completeBusinessTask = (
+  state,
+  task
+) => {
+  const nextState =
+    completeBusinessTaskBase(
+      state,
+      task
+    );
+
+  return resolveIssueForTask(
+    nextState,
+    task
+  );
+};
+
+
+/*
+ * Preserve all existing postponement behaviour.
+ *
+ * Then, when the postponed task is mapped
+ * as a persistent CRITICAL business issue,
+ * open that issue in the company.
+ */
+export const postponeBusinessTask = (
+  state,
+  task
+) => {
+  const nextState =
+    postponeBusinessTaskBase(
+      state,
+      task
+    );
+
+  return createIssueFromTask(
+    nextState,
+    task
+  );
+};
+
+
+/*
+ * Preserve the original month advancement
+ * logic first.
+ *
+ * Once the next month has opened,
+ * every unresolved issue applies its
+ * continuing monthly business impact.
+ */
+export const advanceDay = (
+  state
+) => {
+  const result =
+    advanceDayBase(
+      state
+    );
+
+
+  if (
+    result.blocked ||
+    !result.state
+  ) {
+    return result;
+  }
+
+
+  /*
+   * currentDay 13 is the finished screen,
+   * not another simulated operating month.
+   *
+   * Do not apply an extra January-style
+   * consequence after December.
+   */
+  if (
+    result.state.currentDay >
+    12
+  ) {
+    return result;
+  }
+
+
+  const stateAfterIssues =
+    processOpenBusinessIssues(
+      result.state
+    );
+
+
+  return {
+    ...result,
+
+    state:
+      stateAfterIssues,
   };
 };

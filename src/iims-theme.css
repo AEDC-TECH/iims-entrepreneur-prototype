@@ -15893,3 +15893,4813 @@ button:focus-visible {
     width: 100%;
   }
 }
+
+
+/* =========================================================
+   MONTH 11 — INTERACTIVE MONEY DECISION
+========================================================= */
+
+.year-end-money-decision {
+  margin-top: 24px;
+  padding: 26px;
+  border: 1px solid rgba(8, 11, 69, 0.12);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow:
+    0 14px 38px rgba(8, 11, 69, 0.08);
+}
+
+.year-end-money-header h3 {
+  margin: 6px 0 8px;
+  color: var(--iims-navy);
+  font-size: 1.45rem;
+}
+
+.year-end-money-header p {
+  max-width: 850px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.65;
+}
+
+.year-end-money-snapshot {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.year-end-money-snapshot article {
+  padding: 18px;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background: #f9fafb;
+}
+
+.year-end-money-snapshot span,
+.year-end-preview-grid span {
+  display: block;
+  margin-bottom: 8px;
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.year-end-money-snapshot strong {
+  display: block;
+  color: var(--iims-navy);
+  font-size: 1.25rem;
+}
+
+.year-end-money-snapshot small {
+  display: block;
+  margin-top: 6px;
+  color: #98a2b3;
+  line-height: 1.4;
+}
+
+.year-end-money-entry {
+  margin-top: 22px;
+  padding: 22px;
+  border: 1px solid rgba(235, 169, 0, 0.3);
+  border-radius: 18px;
+  background: var(--iims-gold-light);
+}
+
+.year-end-money-entry > label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--iims-navy);
+  font-weight: 800;
+}
+
+.year-end-money-input-wrap {
+  display: flex;
+  align-items: center;
+  max-width: 430px;
+  overflow: hidden;
+  border: 2px solid rgba(8, 11, 69, 0.14);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.year-end-money-input-wrap > span {
+  padding: 0 16px;
+  color: var(--iims-navy);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.year-end-money-input-wrap input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 0;
+  border-left: 1px solid #e4e7ec;
+  outline: none;
+  background: transparent;
+  color: var(--iims-navy);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.year-end-money-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.year-end-money-presets button {
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid rgba(8, 11, 69, 0.16);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--iims-navy);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.year-end-money-presets button:hover {
+  border-color: var(--iims-gold);
+}
+
+.year-end-safe-note {
+  display: block;
+  margin-top: 14px;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.year-end-safe-note strong {
+  color: var(--iims-navy);
+}
+
+.year-end-money-preview {
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--iims-navy);
+}
+
+.year-end-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 16px;
+}
+
+.year-end-preview-heading span {
+  color: var(--iims-gold);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}
+
+.year-end-preview-heading small {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.year-end-preview-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.year-end-preview-grid article {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.year-end-preview-grid span {
+  color: var(--iims-gold);
+}
+
+.year-end-preview-grid small {
+  display: block;
+  margin: 7px 0 3px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.year-end-preview-grid strong {
+  display: block;
+  color: #ffffff;
+  font-size: 1.08rem;
+}
+
+.year-end-money-warning {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 14px;
+}
+
+.year-end-money-warning strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.year-end-money-warning p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.year-end-money-warning.danger {
+  border: 1px solid #fecdca;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.year-end-money-warning.caution {
+  border: 1px solid #fedf89;
+  background: #fffaeb;
+  color: #93370d;
+}
+
+.year-end-money-warning.healthy {
+  border: 1px solid #abefc6;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.year-end-money-lesson {
+  margin-top: 18px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--iims-navy);
+}
+
+.year-end-money-lesson strong {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--iims-gold);
+}
+
+.year-end-money-lesson p {
+  margin: 0;
+  color: #ffffff;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .year-end-money-snapshot,
+  .year-end-preview-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .year-end-money-decision {
+    padding: 18px;
+  }
+
+  .year-end-money-snapshot,
+  .year-end-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .year-end-preview-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+/* =========================================================
+   BUSINESS OPERATIONS & PERSISTENT ISSUES
+========================================================= */
+
+.operations-status-panel {
+  margin: 22px 0;
+  padding: 26px;
+  border: 1px solid rgba(8, 11, 69, 0.1);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow:
+    0 14px 40px rgba(8, 11, 69, 0.07);
+}
+
+.operations-status-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.operations-status-header h2 {
+  margin: 5px 0 8px;
+  color: var(--iims-navy);
+}
+
+.operations-status-header p {
+  max-width: 720px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.operations-capacity-badge {
+  min-width: 180px;
+  padding: 18px;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.operations-capacity-badge span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.operations-capacity-badge strong {
+  display: block;
+  margin: 5px 0;
+  font-size: 2rem;
+}
+
+.operations-capacity-badge small {
+  font-weight: 800;
+}
+
+.operations-capacity-badge.healthy {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.operations-capacity-badge.watch {
+  background: #fffaeb;
+  color: #93370d;
+}
+
+.operations-capacity-badge.warning {
+  background: #fff4ed;
+  color: #b54708;
+}
+
+.operations-capacity-badge.critical {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.operations-metric-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.operations-metric-grid article {
+  padding: 18px;
+  border: 1px solid #e4e7ec;
+  border-radius: 17px;
+  background: #f9fafb;
+}
+
+.operations-metric-grid span {
+  display: block;
+  color: #667085;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+.operations-metric-grid strong {
+  display: block;
+  margin: 8px 0 6px;
+  color: var(--iims-navy);
+  font-size: 1.4rem;
+}
+
+.operations-metric-grid small {
+  color: #667085;
+  line-height: 1.45;
+}
+
+.operations-target-warning {
+  margin-top: 16px;
+  padding: 17px 20px;
+  border: 1px solid #fedf89;
+  border-radius: 16px;
+  background: #fffaeb;
+  color: #93370d;
+}
+
+.operations-target-warning strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.operations-target-warning p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.operations-issues-section {
+  margin-top: 26px;
+}
+
+.operations-issues-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.operations-issues-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.operations-issues-heading span {
+  color: #667085;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.operations-issues-heading strong {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--iims-navy);
+  color: #ffffff;
+}
+
+.operations-issues-heading small {
+  color: #b42318;
+  font-weight: 800;
+}
+
+.operations-no-issues {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid #abefc6;
+  border-radius: 16px;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.operations-no-issues p {
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+.operations-issue-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.operations-issue-card {
+  padding: 20px;
+  border: 1px solid #e4e7ec;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.operations-issue-card.critical {
+  border-left:
+    5px solid #d92d20;
+}
+
+.operations-issue-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.operations-issue-top span {
+  color: #b42318;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.operations-issue-top h3 {
+  margin: 5px 0 0;
+  color: var(--iims-navy);
+}
+
+.operations-issue-age {
+  min-width: 90px;
+  text-align: right;
+}
+
+.operations-issue-age strong {
+  display: block;
+  color: #b42318;
+  font-size: 1.5rem;
+}
+
+.operations-issue-age span {
+  font-size: 0.62rem;
+}
+
+.operations-issue-card > p {
+  color: #667085;
+  line-height: 1.55;
+}
+
+.operations-issue-impact {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.operations-issue-impact > div {
+  padding: 13px;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.operations-issue-impact span {
+  display: block;
+  color: #98a2b3;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.operations-issue-impact strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+}
+
+.operations-issue-message {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 13px;
+  background: #fff4ed;
+  color: #9c2a10;
+}
+
+.operations-issue-message p {
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+.operations-resolution-note {
+  display: block;
+  margin-top: 13px;
+  color: #667085;
+}
+
+.operations-month-impact {
+  margin-top: 22px;
+  padding: 19px;
+  border-radius: 17px;
+  background: var(--iims-navy);
+}
+
+.operations-month-impact > span {
+  color: var(--iims-gold);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.operations-month-impact article {
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px solid
+    rgba(255, 255, 255, 0.12);
+}
+
+.operations-month-impact strong {
+  color: #ffffff;
+}
+
+.operations-month-impact p {
+  margin: 5px 0 0;
+  color:
+    rgba(255, 255, 255, 0.76);
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .operations-status-header {
+    flex-direction: column;
+  }
+
+  .operations-capacity-badge {
+    width: 100%;
+  }
+
+  .operations-metric-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .operations-status-panel {
+    padding: 18px;
+  }
+
+  .operations-metric-grid,
+  .operations-issue-impact {
+    grid-template-columns: 1fr;
+  }
+
+  .operations-issue-top {
+    flex-direction: column;
+  }
+
+  .operations-issue-age {
+    text-align: left;
+  }
+}
+
+
+/* =========================================================
+   LOAN LEARNING CENTRE
+========================================================= */
+
+.loan-learning-centre {
+  margin-bottom: 24px;
+  padding: 26px;
+  border: 1px solid rgba(8, 11, 69, 0.1);
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+.loan-learning-heading h2 {
+  margin: 5px 0 8px;
+  color: var(--iims-navy);
+}
+
+.loan-learning-heading p {
+  max-width: 800px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.loan-learning-empty {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  background: #f9fafb;
+  color: #475467;
+}
+
+.loan-learning-empty strong {
+  color: var(--iims-navy);
+}
+
+.loan-learning-empty p {
+  margin: 6px 0 0;
+  line-height: 1.55;
+}
+
+.loan-learning-list {
+  display: grid;
+  gap: 20px;
+  margin-top: 22px;
+}
+
+.loan-account-learning {
+  padding: 22px;
+  border: 1px solid #e4e7ec;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.loan-account-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.loan-account-heading > div > span {
+  color: #667085;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.loan-account-heading h3 {
+  margin: 5px 0;
+  color: var(--iims-navy);
+}
+
+.loan-account-heading p {
+  margin: 0;
+  color: #667085;
+}
+
+.loan-affordability-badge {
+  min-width: 130px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.loan-affordability-badge span {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+.loan-affordability-badge strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.loan-affordability-badge.good {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.loan-affordability-badge.watch {
+  background: #fffaeb;
+  color: #93370d;
+}
+
+.loan-affordability-badge.danger {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.loan-account-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 20px;
+}
+
+.loan-account-grid article {
+  padding: 16px;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.loan-account-grid span,
+.loan-history-summary span {
+  display: block;
+  color: #667085;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+.loan-account-grid strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--iims-navy);
+  font-size: 1.15rem;
+}
+
+.loan-account-grid small {
+  display: block;
+  margin-top: 4px;
+  color: #98a2b3;
+}
+
+.loan-payment-breakdown {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 18px;
+  background: var(--iims-navy);
+}
+
+.loan-payment-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.loan-payment-title span {
+  color: var(--iims-gold);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.loan-payment-title h4 {
+  margin: 5px 0 0;
+  color: #ffffff;
+}
+
+.loan-payment-title > strong {
+  color: #ffffff;
+  font-size: 1.4rem;
+}
+
+.loan-payment-flow {
+  display: grid;
+  grid-template-columns:
+    1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.loan-payment-flow article {
+  padding: 15px;
+  border: 1px solid
+    rgba(255, 255, 255, 0.13);
+  border-radius: 13px;
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+.loan-payment-flow span {
+  display: block;
+  color: var(--iims-gold);
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.loan-payment-flow strong {
+  display: block;
+  margin-top: 5px;
+  color: #ffffff;
+}
+
+.loan-payment-flow small {
+  display: block;
+  margin-top: 4px;
+  color:
+    rgba(255, 255, 255, 0.6);
+}
+
+.loan-flow-arrow,
+.loan-flow-plus {
+  color: var(--iims-gold);
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.loan-balance-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 17px;
+  padding: 15px;
+  border-radius: 13px;
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+.loan-balance-preview span {
+  display: block;
+  color:
+    rgba(255, 255, 255, 0.6);
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.loan-balance-preview strong {
+  display: block;
+  margin-top: 3px;
+  color: #ffffff;
+}
+
+.loan-balance-arrow {
+  color: var(--iims-gold) !important;
+  font-size: 1.3rem !important;
+}
+
+.loan-learning-note {
+  margin-top: 16px;
+  padding: 15px;
+  border-radius: 13px;
+  background:
+    rgba(255, 255, 255, 0.09);
+}
+
+.loan-learning-note strong {
+  color: var(--iims-gold);
+}
+
+.loan-learning-note p {
+  margin: 5px 0 0;
+  color:
+    rgba(255, 255, 255, 0.82);
+  line-height: 1.55;
+}
+
+.loan-affordability-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+}
+
+.loan-affordability-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.loan-affordability-heading span {
+  color: #667085;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+.loan-affordability-heading .good {
+  color: #067647;
+}
+
+.loan-affordability-heading .watch {
+  color: #93370d;
+}
+
+.loan-affordability-heading .danger {
+  color: #b42318;
+}
+
+.loan-affordability-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.loan-affordability-grid > div {
+  padding: 12px;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.loan-affordability-grid span {
+  display: block;
+  color: #667085;
+  font-size: 0.7rem;
+}
+
+.loan-affordability-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--iims-navy);
+}
+
+.loan-affordability-panel > p {
+  margin: 14px 0 0;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.loan-history-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.loan-history-summary article {
+  padding: 14px;
+  border-radius: 13px;
+  background: #f9fafb;
+}
+
+.loan-history-summary strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+}
+
+.loan-missed-warning {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid #fecdca;
+  border-radius: 14px;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.loan-missed-warning p {
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+.loan-schedule-details {
+  margin-top: 18px;
+  border: 1px solid #e4e7ec;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.loan-schedule-details summary {
+  padding: 16px 18px;
+  color: var(--iims-navy);
+  font-weight: 900;
+  cursor: pointer;
+  background: #f9fafb;
+}
+
+.loan-schedule-explanation {
+  padding: 16px 18px 0;
+}
+
+.loan-schedule-explanation strong {
+  color: var(--iims-navy);
+}
+
+.loan-schedule-explanation p {
+  margin: 4px 0 0;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.loan-schedule-table-wrap {
+  overflow-x: auto;
+  padding: 16px 18px 18px;
+}
+
+.loan-schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.loan-schedule-table th,
+.loan-schedule-table td {
+  padding: 11px;
+  border-bottom: 1px solid #eaecf0;
+  text-align: right;
+}
+
+.loan-schedule-table th:first-child,
+.loan-schedule-table td:first-child {
+  text-align: left;
+}
+
+.loan-schedule-table th {
+  color: #667085;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.loan-schedule-table td {
+  color: #344054;
+}
+
+@media (max-width: 900px) {
+  .loan-account-grid,
+  .loan-affordability-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .loan-history-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .loan-payment-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .loan-flow-arrow,
+  .loan-flow-plus {
+    text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .loan-learning-centre {
+    padding: 18px;
+  }
+
+  .loan-account-heading,
+  .loan-payment-title {
+    flex-direction: column;
+  }
+
+  .loan-account-grid,
+  .loan-affordability-grid,
+  .loan-history-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .loan-affordability-badge {
+    width: 100%;
+  }
+
+  .loan-balance-preview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
+/* =========================================================
+   INTERACTIVE LOAN PAYMENT CHECKPOINT
+========================================================= */
+
+.loan-payment-checkpoint {
+  margin-bottom: 24px;
+  padding: 26px;
+  border: 2px solid rgba(8, 11, 69, 0.12);
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+.loan-payment-checkpoint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 22px;
+}
+
+.loan-payment-checkpoint-header h2 {
+  margin: 5px 0 8px;
+  color: var(--iims-navy);
+}
+
+.loan-payment-checkpoint-header p {
+  max-width: 760px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.loan-payment-due-badge {
+  min-width: 170px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff4ed;
+  color: #b54708;
+  text-align: center;
+}
+
+.loan-payment-due-badge span {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.loan-payment-due-badge strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.4rem;
+}
+
+.loan-payment-context-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.loan-payment-context-grid article {
+  padding: 16px;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.loan-payment-context-grid span {
+  display: block;
+  color: #667085;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+.loan-payment-context-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+  font-size: 1.1rem;
+}
+
+.loan-payment-explanation {
+  display: grid;
+  grid-template-columns:
+    1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 17px;
+  background: var(--iims-navy);
+}
+
+.loan-payment-explanation > div:not(
+  .loan-payment-explanation-symbol
+) {
+  padding: 13px;
+  border-radius: 12px;
+  background:
+    rgba(255, 255, 255, 0.07);
+}
+
+.loan-payment-explanation span {
+  display: block;
+  color: var(--iims-gold);
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.loan-payment-explanation strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffffff;
+}
+
+.loan-payment-explanation small {
+  display: block;
+  margin-top: 4px;
+  color:
+    rgba(255, 255, 255, 0.62);
+}
+
+.loan-payment-explanation-symbol {
+  color: var(--iims-gold);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.loan-payment-choice-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 20px;
+}
+
+.loan-payment-choice {
+  min-height: 105px;
+  padding: 17px;
+  border: 2px solid #e4e7ec;
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.loan-payment-choice strong {
+  display: block;
+  color: var(--iims-navy);
+}
+
+.loan-payment-choice span {
+  display: block;
+  margin-top: 6px;
+  color: #667085;
+  line-height: 1.45;
+}
+
+.loan-payment-choice.selected {
+  border-color: var(--iims-navy);
+  background:
+    rgba(8, 11, 69, 0.04);
+}
+
+.loan-payment-choice.danger.selected {
+  border-color: #d92d20;
+  background: #fef3f2;
+}
+
+.loan-partial-payment-entry {
+  margin-top: 17px;
+  padding: 18px;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background: #f9fafb;
+}
+
+.loan-partial-payment-entry label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--iims-navy);
+  font-weight: 800;
+}
+
+.loan-partial-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.loan-partial-input span {
+  padding-left: 14px;
+  color: #667085;
+  font-weight: 800;
+}
+
+.loan-partial-input input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px 10px 6px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 1rem;
+}
+
+.loan-partial-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.loan-partial-presets button {
+  padding: 8px 13px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--iims-navy);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.loan-decision-preview {
+  margin-top: 20px;
+  padding: 19px;
+  border-radius: 17px;
+  background: #f9fafb;
+}
+
+.loan-decision-preview-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.loan-decision-preview-grid article {
+  padding: 14px;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.loan-decision-preview-grid span {
+  color: #667085;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.loan-decision-preview-grid article > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.loan-decision-preview-grid strong {
+  color: var(--iims-navy);
+}
+
+.loan-decision-preview-grid b {
+  color: var(--iims-gold);
+}
+
+.loan-restructure-preview {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.loan-restructure-preview > div {
+  padding: 14px;
+  border-radius: 12px;
+  background: #fffaeb;
+}
+
+.loan-restructure-preview span {
+  display: block;
+  color: #93370d;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.loan-restructure-preview strong {
+  display: block;
+  margin-top: 5px;
+  color: #7a2e0e;
+}
+
+.loan-payment-consequence-warning {
+  margin-top: 14px;
+  padding: 15px;
+  border: 1px solid #fecdca;
+  border-radius: 13px;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.loan-payment-consequence-warning p {
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+.loan-preview-valid {
+  margin-top: 14px;
+  padding: 13px;
+  border-radius: 12px;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.loan-preview-valid p {
+  margin: 4px 0 0;
+}
+
+.loan-preview-error {
+  margin-top: 14px;
+  padding: 13px;
+  border-radius: 12px;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.loan-confirm-payment-button {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.loan-confirm-payment-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loan-payment-lock-note {
+  margin: 10px 0 0;
+  color: #667085;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 800px) {
+  .loan-payment-checkpoint-header {
+    flex-direction: column;
+  }
+
+  .loan-payment-due-badge {
+    width: 100%;
+  }
+
+  .loan-payment-context-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .loan-payment-explanation {
+    grid-template-columns: 1fr;
+  }
+
+  .loan-payment-explanation-symbol {
+    text-align: center;
+  }
+
+  .loan-restructure-preview {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .loan-payment-checkpoint {
+    padding: 18px;
+  }
+
+  .loan-payment-context-grid,
+  .loan-payment-choice-grid,
+  .loan-decision-preview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   MONTH 9 — WORKING CAPITAL CRISIS
+========================================================= */
+
+.working-capital-crisis {
+  margin: 24px 0;
+  padding: 26px;
+  border: 2px solid
+    rgba(8, 11, 69, 0.12);
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+.working-capital-crisis.resolved {
+  border-color:
+    rgba(6, 118, 71, 0.2);
+}
+
+.wc-header {
+  display: flex;
+  justify-content:
+    space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.wc-header h2 {
+  margin: 5px 0 8px;
+  color: var(--iims-navy);
+}
+
+.wc-header p {
+  max-width: 760px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+.wc-required-badge {
+  min-width: 170px;
+  padding: 17px;
+  border-radius: 16px;
+  background: #fff4ed;
+  color: #b54708;
+  text-align: center;
+}
+
+.wc-required-badge span {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.wc-required-badge strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.4rem;
+}
+
+.wc-breakdown {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.wc-breakdown article {
+  padding: 16px;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.wc-breakdown span {
+  display: block;
+  color: #667085;
+  font-size: 0.72rem;
+}
+
+.wc-breakdown strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+}
+
+.wc-business-position {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 18px;
+  background: var(--iims-navy);
+}
+
+.wc-section-heading span {
+  color: var(--iims-gold);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.wc-section-heading h3 {
+  margin: 5px 0 0;
+  color: #ffffff;
+}
+
+.wc-position-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.wc-position-grid article {
+  padding: 14px;
+  border: 1px solid
+    rgba(255, 255, 255, 0.11);
+  border-radius: 13px;
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+.wc-position-grid span {
+  display: block;
+  color:
+    rgba(255, 255, 255, 0.62);
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.wc-position-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: #ffffff;
+}
+
+.wc-position-grid small {
+  display: block;
+  margin-top: 4px;
+  color:
+    rgba(255, 255, 255, 0.5);
+}
+
+.wc-learning-note {
+  margin-top: 17px;
+  padding: 16px 18px;
+  border-left: 4px solid
+    var(--iims-gold);
+  border-radius: 12px;
+  background: #fffaeb;
+}
+
+.wc-learning-note strong {
+  color: var(--iims-navy);
+}
+
+.wc-learning-note p {
+  margin: 5px 0 0;
+  color: #667085;
+  line-height: 1.55;
+}
+
+.wc-choice-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 20px;
+}
+
+.wc-choice {
+  position: relative;
+  min-height: 145px;
+  padding: 19px;
+  border: 2px solid #e4e7ec;
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wc-choice.selected {
+  border-color:
+    var(--iims-navy);
+  background:
+    rgba(8, 11, 69, 0.035);
+}
+
+.wc-choice.danger.selected {
+  border-color: #d92d20;
+  background: #fef3f2;
+}
+
+.wc-choice-number {
+  display: block;
+  color: var(--iims-gold);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.wc-choice strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--iims-navy);
+  font-size: 1rem;
+}
+
+.wc-choice p {
+  margin: 7px 0 0;
+  color: #667085;
+  line-height: 1.45;
+}
+
+.wc-blended-control {
+  margin-top: 17px;
+  padding: 18px;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background: #f9fafb;
+}
+
+.wc-blended-control label {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--iims-navy);
+  font-weight: 800;
+}
+
+.wc-money-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.wc-money-input span {
+  padding-left: 14px;
+  color: #667085;
+  font-weight: 800;
+}
+
+.wc-money-input input {
+  width: 100%;
+  min-height: 46px;
+  padding: 9px 14px 9px 6px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 1rem;
+}
+
+.wc-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.wc-presets button {
+  padding: 8px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: var(--iims-navy);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.wc-preview {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 18px;
+  background: #f9fafb;
+}
+
+.wc-preview-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.wc-preview-grid article {
+  padding: 14px;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.wc-preview-grid span {
+  display: block;
+  color: #667085;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.wc-preview-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+}
+
+.wc-preview-grid article > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.wc-preview-grid b {
+  color: var(--iims-gold);
+}
+
+.wc-loan-offer {
+  margin-top: 17px;
+  padding: 19px;
+  border-radius: 16px;
+  background: var(--iims-navy);
+}
+
+.wc-loan-offer-heading span {
+  color: var(--iims-gold);
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.wc-loan-offer-heading h3 {
+  margin: 5px 0 0;
+  color: #ffffff;
+}
+
+.wc-loan-offer-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 15px;
+}
+
+.wc-loan-offer-grid > div {
+  padding: 13px;
+  border-radius: 11px;
+  background:
+    rgba(255, 255, 255, 0.07);
+}
+
+.wc-loan-offer-grid span {
+  display: block;
+  color:
+    rgba(255, 255, 255, 0.58);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.wc-loan-offer-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: #ffffff;
+}
+
+.wc-loan-offer-grid small {
+  display: block;
+  margin-top: 3px;
+  color:
+    rgba(255, 255, 255, 0.48);
+}
+
+.wc-debt-service-change {
+  margin-top: 13px;
+  padding: 14px;
+  border-radius: 11px;
+  background:
+    rgba(255, 255, 255, 0.08);
+}
+
+.wc-debt-service-change > span {
+  color: var(--iims-gold);
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.wc-debt-service-change > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.wc-debt-service-change strong {
+  color: #ffffff;
+}
+
+.wc-debt-service-change b {
+  color: var(--iims-gold);
+}
+
+.wc-cash-warning,
+.wc-delay-warning,
+.wc-preview-explanation,
+.wc-preview-error {
+  margin-top: 14px;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.wc-cash-warning.good {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.wc-cash-warning.watch {
+  background: #fffaeb;
+  color: #93370d;
+}
+
+.wc-cash-warning.danger,
+.wc-delay-warning,
+.wc-preview-error {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.wc-cash-warning p,
+.wc-delay-warning p {
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+.wc-preview-explanation {
+  background: #ffffff;
+  color: #475467;
+  line-height: 1.55;
+}
+
+.wc-confirm-button {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.wc-confirm-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wc-lock-note {
+  margin: 10px 0 0;
+  color: #667085;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.wc-complete-card {
+  margin-top: 15px;
+  padding: 19px;
+  border-radius: 16px;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.wc-complete-card p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+.wc-complete-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.wc-complete-grid > div {
+  padding: 12px;
+  border-radius: 10px;
+  background:
+    rgba(255, 255, 255, 0.7);
+}
+
+.wc-complete-grid span {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.wc-complete-grid strong {
+  display: block;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .wc-preview-grid,
+  .wc-loan-offer-grid,
+  .wc-complete-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .wc-position-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .working-capital-crisis {
+    padding: 18px;
+  }
+
+  .wc-header {
+    flex-direction: column;
+  }
+
+  .wc-required-badge {
+    width: 100%;
+  }
+
+  .wc-breakdown,
+  .wc-choice-grid,
+  .wc-position-grid,
+  .wc-preview-grid,
+  .wc-loan-offer-grid,
+  .wc-complete-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* =========================================================
+   NUMBER-AWARE REFLECTION CONTEXT
+========================================================= */
+
+.reflection-decision-context {
+  margin: 16px 0 14px;
+  padding: 16px 18px;
+  border-left: 4px solid var(--iims-gold);
+  border-radius: 12px;
+  background:
+    rgba(8, 11, 69, 0.045);
+}
+
+.reflection-decision-context > span {
+  display: block;
+  color: #667085;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.reflection-decision-context > strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+  font-size: 1rem;
+}
+
+.reflection-decision-context > p {
+  margin: 6px 0 0;
+  color: #667085;
+  line-height: 1.45;
+}
+
+
+/* =========================================================
+   FINAL MVP — EXECUTIVE NEGOTIATION SIMULATOR
+========================================================= */
+
+.executive-negotiation {
+  position: relative;
+  overflow: hidden;
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid rgba(8, 11, 69, 0.1);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(237, 174, 0, 0.09),
+      transparent 26%
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fbfcff 100%
+    );
+  box-shadow:
+    0 18px 50px rgba(8, 11, 69, 0.08);
+}
+
+
+.negotiation-header,
+.negotiation-intro-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+
+.negotiation-header h2,
+.negotiation-intro-heading h2 {
+  margin: 5px 0 7px;
+  color: var(--iims-navy);
+  font-size: clamp(
+    1.55rem,
+    2vw,
+    2.15rem
+  );
+  letter-spacing: -0.035em;
+}
+
+
+.negotiation-header p,
+.negotiation-intro-heading p {
+  margin: 0;
+  color: #6c7894;
+}
+
+
+.negotiation-header-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+
+.negotiation-live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: #eaf9f2;
+  color: #07845d;
+  font-size: 0.67rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+
+.negotiation-live-chip span,
+.negotiation-live-chip i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0ca678;
+  box-shadow:
+    0 0 0 5px
+    rgba(12, 166, 120, 0.12);
+}
+
+
+.negotiation-relationship-state {
+  padding: 8px 11px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+
+.negotiation-relationship-state.strong,
+.negotiation-relationship-state.positive {
+  background: #ecfdf3;
+  color: #087a52;
+}
+
+
+.negotiation-relationship-state.warning {
+  background: #fff5df;
+  color: #9b6200;
+}
+
+
+.negotiation-relationship-state.danger {
+  background: #fff0f0;
+  color: #b42318;
+}
+
+
+.negotiation-relationship-state.neutral {
+  background: #f1f3f7;
+  color: #59657b;
+}
+
+
+/* ---------------------------------------------------------
+   INTRO / STAKES
+--------------------------------------------------------- */
+
+.negotiation-stakes-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+
+.negotiation-stake {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid #e6eaf2;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+
+.negotiation-stake.primary {
+  border-color:
+    rgba(237, 174, 0, 0.4);
+  background:
+    linear-gradient(
+      145deg,
+      #fff9e8,
+      #ffffff
+    );
+}
+
+
+.negotiation-stake span {
+  display: block;
+  margin-bottom: 7px;
+  color: #7a8498;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+
+.negotiation-stake strong {
+  display: block;
+  color: var(--iims-navy);
+  font-size: 1.4rem;
+}
+
+
+.negotiation-stake small {
+  display: block;
+  margin-top: 4px;
+  color: #8a94a8;
+}
+
+
+.negotiation-brief {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 21px;
+  border-radius: 19px;
+  background: #f6f7fb;
+}
+
+
+.negotiation-brief > div:last-child {
+  flex: 1;
+}
+
+
+.negotiation-brief span,
+.negotiation-management-note span {
+  display: block;
+  color: #a47100;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}
+
+
+.negotiation-brief strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--iims-navy);
+}
+
+
+.negotiation-brief p {
+  margin: 7px 0 0;
+  color: #53617d;
+  line-height: 1.65;
+}
+
+
+.negotiation-management-note {
+  margin-top: 13px;
+  padding: 15px 17px;
+  border-left: 4px solid
+    var(--iims-gold);
+  border-radius: 12px;
+  background:
+    rgba(237, 174, 0, 0.07);
+}
+
+
+.negotiation-management-note p {
+  margin: 4px 0 0;
+  color: #53617d;
+  line-height: 1.55;
+}
+
+
+.negotiation-start-button,
+.negotiation-confirm-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+  min-height: 50px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--iims-navy);
+  color: #ffffff;
+  font-weight: 850;
+  cursor: pointer;
+  box-shadow:
+    0 10px 24px
+    rgba(8, 11, 69, 0.16);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.negotiation-start-button:hover,
+.negotiation-confirm-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 15px 30px
+    rgba(8, 11, 69, 0.2);
+}
+
+
+/* ---------------------------------------------------------
+   COMMAND BAR
+--------------------------------------------------------- */
+
+.negotiation-command-bar {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin-top: 22px;
+  border: 1px solid #e5e9f1;
+  border-radius: 16px;
+  background: #e5e9f1;
+}
+
+
+.negotiation-command-bar > div {
+  padding: 14px 16px;
+  background: #ffffff;
+}
+
+
+.negotiation-command-bar span {
+  display: block;
+  margin-bottom: 4px;
+  color: #8992a5;
+  font-size: 0.61rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.negotiation-command-bar strong {
+  color: var(--iims-navy);
+  font-size: 0.96rem;
+}
+
+
+/* ---------------------------------------------------------
+   WORKSPACE
+--------------------------------------------------------- */
+
+.negotiation-workspace {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.65fr)
+    minmax(280px, 0.55fr);
+  gap: 18px;
+  align-items: start;
+  margin-top: 18px;
+}
+
+
+.negotiation-chat-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e7eaf1;
+  border-radius: 20px;
+  background: #f7f8fc;
+}
+
+
+.negotiation-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 320px;
+  padding: 22px;
+}
+
+
+.negotiation-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  max-width: 88%;
+  animation:
+    negotiationMessageIn
+    320ms ease both;
+}
+
+
+.negotiation-message.from-you {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+
+@keyframes negotiationMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.negotiation-avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  background: var(--iims-navy);
+  color: var(--iims-gold);
+  font-size: 0.67rem;
+  font-weight: 950;
+}
+
+
+.negotiation-avatar.large {
+  width: 54px;
+  height: 54px;
+}
+
+
+.negotiation-message.from-you
+.negotiation-avatar {
+  background: var(--iims-gold);
+  color: var(--iims-navy);
+}
+
+
+.negotiation-bubble {
+  padding: 15px 17px;
+  border-radius:
+    7px 18px 18px 18px;
+  background: #ffffff;
+  box-shadow:
+    0 5px 15px
+    rgba(8, 11, 69, 0.045);
+}
+
+
+.negotiation-message.from-you
+.negotiation-bubble {
+  border-radius:
+    18px 7px 18px 18px;
+  background: var(--iims-navy);
+  color: #ffffff;
+}
+
+
+.negotiation-message-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+.negotiation-message-meta strong {
+  font-size: 0.76rem;
+}
+
+
+.negotiation-message-meta span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background:
+    rgba(237, 174, 0, 0.16);
+  color: #9b6b00;
+  font-size: 0.61rem;
+  font-weight: 850;
+}
+
+
+.negotiation-message.from-you
+.negotiation-message-meta span {
+  background:
+    rgba(255, 255, 255, 0.12);
+  color: #ffd86a;
+}
+
+
+.negotiation-bubble p {
+  margin: 7px 0 0;
+  line-height: 1.55;
+  color: #596681;
+}
+
+
+.negotiation-message.from-you
+.negotiation-bubble p {
+  color: #f5f6ff;
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSE CARDS
+--------------------------------------------------------- */
+
+.negotiation-response-zone {
+  padding: 20px;
+  border-top: 1px solid #e6eaf1;
+  background: #ffffff;
+}
+
+
+.negotiation-response-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
+
+.negotiation-response-heading span {
+  color: #b47c00;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}
+
+
+.negotiation-response-heading h3 {
+  margin: 3px 0 0;
+  color: var(--iims-navy);
+}
+
+
+.negotiation-response-heading p {
+  max-width: 330px;
+  margin: 0;
+  color: #7d879a;
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+
+.negotiation-response-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+
+.negotiation-response-card {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #e2e6ef;
+  border-radius: 15px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.negotiation-response-card:hover {
+  transform: translateY(-2px);
+  border-color:
+    rgba(237, 174, 0, 0.65);
+  box-shadow:
+    0 12px 25px
+    rgba(8, 11, 69, 0.08);
+}
+
+
+.negotiation-response-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+
+.negotiation-strategy-symbol {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background:
+    rgba(8, 11, 69, 0.06);
+  color: var(--iims-navy);
+  font-weight: 950;
+}
+
+
+.negotiation-response-top > div {
+  flex: 1;
+}
+
+
+.negotiation-response-top small {
+  display: block;
+  color: #a47100;
+  font-size: 0.59rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.negotiation-response-top strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--iims-navy);
+  font-size: 0.78rem;
+}
+
+
+.negotiation-response-arrow {
+  color: var(--iims-navy);
+  font-size: 1.1rem;
+}
+
+
+.negotiation-response-card blockquote {
+  margin: 13px 0 9px;
+  color: #18213c;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+
+.negotiation-response-card > p {
+  margin: 0;
+  color: #7a8497;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+
+/* ---------------------------------------------------------
+   SIDE PANEL
+--------------------------------------------------------- */
+
+.negotiation-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+
+.negotiation-side-heading,
+.negotiation-relationship-card,
+.negotiation-financial-card,
+.negotiation-adviser-card {
+  padding: 17px;
+  border: 1px solid #e5e9f1;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+
+.negotiation-side-heading {
+  background: var(--iims-navy);
+}
+
+
+.negotiation-side-heading span {
+  display: block;
+  color: #ffd86a;
+  font-size: 0.61rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+
+.negotiation-side-heading strong {
+  display: block;
+  margin-top: 5px;
+  color: #ffffff;
+}
+
+
+.relationship-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+
+.relationship-card-top span,
+.negotiation-financial-card > span,
+.negotiation-adviser-card > span {
+  display: block;
+  color: #8992a5;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.relationship-card-top strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--iims-navy);
+}
+
+
+.relationship-pulse {
+  font-size: 1rem;
+}
+
+
+.relationship-pulse.strong,
+.relationship-pulse.positive {
+  color: #0ca678;
+}
+
+
+.relationship-pulse.warning {
+  color: #e5a100;
+}
+
+
+.relationship-pulse.danger {
+  color: #d92d20;
+}
+
+
+.relationship-pulse.neutral {
+  color: #98a2b3;
+}
+
+
+.negotiation-relationship-card > p,
+.negotiation-adviser-card > p {
+  margin: 11px 0 0;
+  color: #667085;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+
+.relationship-movement {
+  display: grid;
+  grid-template-columns:
+    repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 13px;
+}
+
+
+.relationship-movement > div {
+  padding: 11px;
+  border-radius: 11px;
+  background: #f7f8fb;
+}
+
+
+.relationship-movement span {
+  display: block;
+  color: #8b94a5;
+  font-size: 0.59rem;
+  font-weight: 850;
+}
+
+
+.relationship-movement strong {
+  display: block;
+  margin-top: 4px;
+}
+
+
+.positive {
+  color: #087a52 !important;
+}
+
+
+.negative {
+  color: #b42318 !important;
+}
+
+
+.negotiation-financial-card > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #edf0f5;
+}
+
+
+.negotiation-financial-card > div:last-child {
+  border-bottom: 0;
+}
+
+
+.negotiation-financial-card p {
+  margin: 0;
+  color: #667085;
+  font-size: 0.74rem;
+}
+
+
+.negotiation-financial-card strong {
+  color: var(--iims-navy);
+  font-size: 0.82rem;
+}
+
+
+/* ---------------------------------------------------------
+   RESULT
+--------------------------------------------------------- */
+
+.negotiation-outcome {
+  margin-top: 18px;
+  padding: 23px;
+  border: 1px solid
+    rgba(12, 166, 120, 0.25);
+  border-radius: 19px;
+  background:
+    linear-gradient(
+      145deg,
+      #f1fbf7,
+      #ffffff
+    );
+}
+
+
+.negotiation-outcome-heading > span {
+  color: #087a52;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}
+
+
+.negotiation-outcome-heading h3 {
+  margin: 6px 0;
+  color: var(--iims-navy);
+  font-size: 1.45rem;
+}
+
+
+.negotiation-outcome-heading p {
+  margin: 0;
+  color: #667085;
+}
+
+
+.negotiation-deal-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+
+.negotiation-deal-summary > div,
+.negotiation-impact-grid article {
+  padding: 14px;
+  border: 1px solid #e4e9ef;
+  border-radius: 13px;
+  background: #ffffff;
+}
+
+
+.negotiation-deal-summary span,
+.negotiation-impact-grid span {
+  display: block;
+  color: #8992a5;
+  font-size: 0.59rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.negotiation-deal-summary strong,
+.negotiation-impact-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+}
+
+
+.negotiation-impact-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+
+.negotiation-impact-grid p {
+  margin: 5px 0 0;
+  color: #7c8698;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+
+.negotiation-debrief {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 16px;
+}
+
+
+.negotiation-debrief > div {
+  padding: 15px;
+  border-left: 3px solid
+    var(--iims-gold);
+  border-radius: 10px;
+  background:
+    rgba(237, 174, 0, 0.065);
+}
+
+
+.negotiation-debrief span {
+  color: #9b6b00;
+  font-size: 0.59rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.negotiation-debrief p {
+  margin: 6px 0 0;
+  color: #5f687c;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+
+.negotiation-complete-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+
+.negotiation-complete-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #eaf9f2;
+  color: #07845d;
+  font-size: 1.3rem;
+  font-weight: 950;
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+--------------------------------------------------------- */
+
+@media (max-width: 1050px) {
+  .negotiation-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .negotiation-side-panel {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+@media (max-width: 780px) {
+  .executive-negotiation {
+    padding: 19px;
+  }
+
+  .negotiation-header,
+  .negotiation-intro-heading,
+  .negotiation-response-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .negotiation-response-heading p {
+    text-align: left;
+  }
+
+  .negotiation-stakes-grid,
+  .negotiation-command-bar,
+  .negotiation-response-grid,
+  .negotiation-deal-summary,
+  .negotiation-impact-grid,
+  .negotiation-debrief,
+  .negotiation-side-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .negotiation-message {
+    max-width: 96%;
+  }
+}
+
+
+/* =========================================================
+   UPCOMING LOAN PAYMENT TRANSITION
+========================================================= */
+
+.next-loan-payment-hint {
+  max-width: 520px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(237, 174, 0, 0.35);
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(237, 174, 0, 0.09),
+      rgba(255, 255, 255, 0.95)
+    );
+}
+
+.next-loan-payment-hint span {
+  display: block;
+  color: #9b6b00;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.next-loan-payment-hint strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--iims-navy);
+  font-size: 1rem;
+}
+
+.next-loan-payment-hint p {
+  margin: 5px 0 0;
+  color: #667085;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+
+/* =========================================================
+   FINAL MVP — DISTRESS CAPITAL & INVESTOR RESCUE
+========================================================= */
+
+.distress-capital-centre {
+  margin: 24px 0;
+  padding: 26px;
+  border: 1px solid #efc7c2;
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(180, 35, 24, 0.08),
+      transparent 30%
+    ),
+    #ffffff;
+  box-shadow:
+    0 18px 45px
+    rgba(41, 16, 16, 0.08);
+}
+
+
+.distress-capital-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+
+.distress-capital-header h2 {
+  margin: 6px 0 8px;
+  color: var(--iims-navy);
+  font-size: clamp(
+    1.55rem,
+    2.1vw,
+    2.15rem
+  );
+}
+
+
+.distress-capital-header > div:first-child > p:last-child {
+  max-width: 850px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+}
+
+
+.distress-level-badge {
+  min-width: 135px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff0ed;
+  text-align: center;
+}
+
+
+.distress-level-badge span {
+  display: block;
+  color: #a63a2a;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+
+.distress-level-badge strong {
+  display: block;
+  margin-top: 4px;
+  color: #b42318;
+}
+
+
+.distress-lock-message {
+  margin-top: 18px;
+  padding: 15px 17px;
+  border-left: 4px solid #b42318;
+  border-radius: 12px;
+  background: #fff2f0;
+}
+
+
+.distress-lock-message strong {
+  color: #b42318;
+}
+
+
+.distress-lock-message p {
+  margin: 5px 0 0;
+  color: #7a4a43;
+}
+
+
+.distress-metric-grid,
+.distress-result-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+
+.distress-metric-grid article,
+.distress-result-grid > div {
+  padding: 14px;
+  border: 1px solid #e6e9ef;
+  border-radius: 14px;
+  background: #f8f9fb;
+}
+
+
+.distress-metric-grid span,
+.distress-result-grid span {
+  display: block;
+  color: #7d8798;
+  font-size: 0.59rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.distress-metric-grid strong,
+.distress-result-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+}
+
+
+.distress-reasons {
+  margin-top: 18px;
+  padding: 17px;
+  border-radius: 15px;
+  background: #f7f8fb;
+}
+
+
+.distress-reasons > span,
+.distress-investor-intro > span,
+.distress-no-investor > span,
+.distress-decision-preview > span {
+  color: #a47100;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+
+.distress-reasons p {
+  margin: 7px 0 0;
+  color: #59657b;
+}
+
+
+.distress-investor-intro {
+  margin-top: 22px;
+}
+
+
+.distress-investor-intro h3 {
+  margin: 5px 0;
+  color: var(--iims-navy);
+  font-size: 1.3rem;
+}
+
+
+.distress-investor-intro p {
+  margin: 0;
+  color: #687386;
+}
+
+
+.distress-offer-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 13px;
+  margin-top: 15px;
+}
+
+
+.distress-offer-card {
+  width: 100%;
+  padding: 18px;
+  border: 2px solid #e5e8ef;
+  border-radius: 17px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+
+.distress-offer-card:hover {
+  transform: translateY(-2px);
+  border-color:
+    rgba(237, 174, 0, 0.7);
+  box-shadow:
+    0 12px 28px
+    rgba(8, 11, 69, 0.08);
+}
+
+
+.distress-offer-card.selected {
+  border-color: var(--iims-navy);
+  box-shadow:
+    0 0 0 3px
+    rgba(8, 11, 69, 0.06);
+}
+
+
+.distress-offer-card.reject {
+  background: #fff8f7;
+}
+
+
+.distress-offer-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+
+.distress-offer-top span {
+  color: #a47100;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.distress-offer-top h4 {
+  margin: 5px 0 0;
+  color: var(--iims-navy);
+  font-size: 1rem;
+}
+
+
+.distress-equity-badge {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #fff3cf;
+  color: #8a6000;
+  font-size: 0.7rem;
+}
+
+
+.distress-offer-card > p {
+  color: #687386;
+  line-height: 1.5;
+}
+
+
+.distress-offer-numbers {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 13px;
+}
+
+
+.distress-offer-numbers > div {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f7f8fb;
+}
+
+
+.distress-offer-numbers span,
+.distress-before-after span,
+.distress-governance span {
+  display: block;
+  color: #8a93a5;
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+
+.distress-offer-numbers strong,
+.distress-before-after strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--iims-navy);
+  font-size: 0.78rem;
+}
+
+
+.distress-before-after {
+  margin-top: 11px;
+  padding: 12px;
+  border-radius: 11px;
+  background: var(--iims-navy);
+}
+
+
+.distress-before-after > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom:
+    1px solid rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+}
+
+
+.distress-before-after > div:last-child {
+  border-bottom: 0;
+}
+
+
+.distress-before-after span {
+  color: #aab0ce;
+}
+
+
+.distress-before-after strong {
+  color: #ffffff;
+}
+
+
+.distress-governance {
+  margin-top: 11px;
+  padding: 11px;
+  border-left: 3px solid var(--iims-gold);
+  border-radius: 8px;
+  background: #fff9e9;
+}
+
+
+.distress-governance p {
+  margin: 5px 0 0;
+  color: #625b48;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+
+.distress-decision-preview {
+  margin-top: 17px;
+  padding: 17px;
+  border: 1px solid #dfe3ec;
+  border-radius: 15px;
+  background: #f8f9fc;
+}
+
+
+.distress-decision-preview h3 {
+  margin: 5px 0 12px;
+  color: var(--iims-navy);
+}
+
+
+.distress-decision-preview > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 7px 0;
+}
+
+
+.distress-decision-preview p {
+  margin: 0;
+  color: #667085;
+}
+
+
+.distress-decision-preview strong {
+  color: var(--iims-navy);
+}
+
+
+.distress-confirm-button {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 15px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--iims-navy);
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+
+.distress-confirm-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+.distress-period-lock {
+  margin: 10px 0 0;
+  color: #7c8494;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+
+.distress-resolved {
+  border-color:
+    rgba(12, 166, 120, 0.3);
+  background:
+    linear-gradient(
+      145deg,
+      #f1fbf7,
+      #ffffff
+    );
+}
+
+
+.distress-governance-result {
+  margin-top: 14px;
+  padding: 14px;
+  border-left: 4px solid var(--iims-gold);
+  border-radius: 10px;
+  background: #fff9e8;
+}
+
+
+.distress-governance-result p {
+  margin: 4px 0 0;
+}
+
+
+.distress-no-investor {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 15px;
+  background: #fff2f0;
+}
+
+
+.distress-no-investor h3 {
+  margin: 5px 0;
+  color: #b42318;
+}
+
+
+@media (max-width: 1000px) {
+  .distress-metric-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .distress-offer-numbers {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+@media (max-width: 720px) {
+  .distress-capital-header {
+    flex-direction: column;
+  }
+
+  .distress-metric-grid,
+  .distress-result-grid,
+  .distress-offer-grid,
+  .distress-offer-numbers {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   FINAL MVP — INVESTOR RESCUE NEGOTIATION
+========================================================= */
+
+.investor-incoming-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 22px 0;
+  padding: 20px;
+  border: 1px solid rgba(237, 174, 0, 0.4);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #fffaf0
+    );
+  box-shadow:
+    0 14px 35px
+    rgba(8, 11, 69, 0.07);
+}
+
+
+.investor-incoming-icon {
+  display: grid;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 15px;
+  background: var(--iims-navy);
+  color: var(--iims-gold);
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+
+.investor-incoming-copy {
+  flex: 1;
+}
+
+
+.investor-incoming-copy h3 {
+  margin: 4px 0 6px;
+  color: var(--iims-navy);
+}
+
+
+.investor-incoming-copy > p:last-of-type {
+  margin: 0;
+  color: #667085;
+  line-height: 1.5;
+}
+
+
+.investor-incoming-stakes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+
+.investor-incoming-stakes span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #f3f4f7;
+  color: #697386;
+  font-size: 0.72rem;
+}
+
+
+.investor-incoming-stakes strong {
+  color: var(--iims-navy);
+}
+
+
+.investor-enter-meeting {
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--iims-navy);
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+
+.investor-meeting-overlay {
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background:
+    rgba(5, 8, 39, 0.72);
+  backdrop-filter:
+    blur(8px);
+}
+
+
+.investor-meeting-modal {
+  width: min(
+    1220px,
+    96vw
+  );
+  max-height: 92vh;
+  overflow: hidden;
+  border: 1px solid
+    rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow:
+    0 30px 90px
+    rgba(0, 0, 0, 0.32);
+}
+
+
+.investor-meeting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--iims-navy),
+      #171b60
+    );
+  color: #ffffff;
+}
+
+
+.investor-meeting-header .card-label {
+  color: var(--iims-gold);
+}
+
+
+.investor-meeting-header h2 {
+  margin: 4px 0;
+  color: #ffffff;
+}
+
+
+.investor-meeting-header p:last-child {
+  margin: 0;
+  color: #c9cde0;
+}
+
+
+.investor-meeting-close {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid
+    rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  background:
+    rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+
+.investor-meeting-body {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.55fr)
+    minmax(320px, 0.75fr);
+  min-height: 650px;
+  max-height:
+    calc(92vh - 100px);
+}
+
+
+.investor-conversation-column {
+  overflow-y: auto;
+  padding: 22px;
+}
+
+
+.investor-deal-column {
+  overflow-y: auto;
+  padding: 22px;
+  border-left: 1px solid #e7e9ef;
+  background: #f8f9fc;
+}
+
+
+.investor-conversation-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: #f5f6fa;
+}
+
+
+.investor-conversation-status span {
+  color: #9a6d00;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+
+.investor-conversation-status strong {
+  color: var(--iims-navy);
+  font-size: 0.78rem;
+}
+
+
+.investor-message-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+
+.investor-message {
+  max-width: 82%;
+  padding: 14px 15px;
+  border-radius: 16px;
+}
+
+
+.investor-message.investor {
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+  background: #f1f3f7;
+}
+
+
+.investor-message.entrepreneur {
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  background: var(--iims-navy);
+  color: #ffffff;
+}
+
+
+.investor-message-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+
+.investor-message-name strong {
+  font-size: 0.75rem;
+}
+
+
+.investor-message.investor
+.investor-message-name strong {
+  color: var(--iims-navy);
+}
+
+
+.investor-message-name span {
+  color: var(--iims-gold);
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+
+.investor-message p {
+  margin: 7px 0 0;
+  line-height: 1.55;
+}
+
+
+.investor-message.investor p {
+  color: #515d72;
+}
+
+
+.investor-response-area {
+  display: grid;
+  gap: 9px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e6e9ef;
+}
+
+
+.investor-response-area > span {
+  color: #8c6500;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+
+.investor-response-area button {
+  padding: 13px 14px;
+  border: 1px solid #dfe3ea;
+  border-radius: 13px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+
+.investor-response-area button:hover {
+  transform: translateY(-1px);
+  border-color: var(--iims-gold);
+  box-shadow:
+    0 8px 20px
+    rgba(8, 11, 69, 0.06);
+}
+
+
+.investor-response-area button strong {
+  display: block;
+  color: var(--iims-navy);
+}
+
+
+.investor-response-area button p {
+  margin: 4px 0 0;
+  color: #717b8d;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+
+.investor-response-area
+button.danger {
+  border-color: #efc4be;
+  background: #fff8f7;
+}
+
+
+.investor-response-area
+button.danger strong {
+  color: #b42318;
+}
+
+
+.investor-deal-column h3 {
+  margin: 5px 0 16px;
+  color: var(--iims-navy);
+}
+
+
+.investor-deal-main {
+  padding: 18px;
+  border-radius: 15px;
+  background: var(--iims-navy);
+}
+
+
+.investor-deal-main span {
+  color: #b8bdd7;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+
+.investor-deal-main strong {
+  display: block;
+  margin-top: 3px;
+  color: #ffffff;
+  font-size: 1.65rem;
+}
+
+
+.investor-deal-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+
+.investor-deal-grid > div {
+  padding: 12px;
+  border: 1px solid #e2e5ec;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+
+.investor-deal-grid span,
+.investor-deal-impact span,
+.investor-control-box span,
+.investor-reality-box span {
+  display: block;
+  color: #8992a3;
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+
+.investor-deal-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--iims-navy);
+}
+
+
+.investor-deal-impact {
+  margin-top: 10px;
+  padding: 13px;
+  border-radius: 13px;
+  background: #ffffff;
+}
+
+
+.investor-deal-impact > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #edf0f4;
+}
+
+
+.investor-deal-impact > div:last-child {
+  border-bottom: 0;
+}
+
+
+.investor-deal-impact strong {
+  color: var(--iims-navy);
+  text-align: right;
+  font-size: 0.78rem;
+}
+
+
+.investor-control-box,
+.investor-reality-box {
+  margin-top: 10px;
+  padding: 13px;
+  border-radius: 12px;
+}
+
+
+.investor-control-box {
+  border-left: 3px solid var(--iims-gold);
+  background: #fff8e7;
+}
+
+
+.investor-reality-box {
+  background: #eef1f7;
+}
+
+
+.investor-control-box p,
+.investor-reality-box p {
+  margin: 5px 0 0;
+  color: #616b7d;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+
+.investor-meeting-resolved {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid #b9dfcf;
+  border-radius: 17px;
+  background: #f1fbf7;
+}
+
+
+.investor-meeting-resolved-mark {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  background: #147a5b;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+
+.investor-meeting-resolved h3 {
+  margin: 3px 0;
+  color: var(--iims-navy);
+}
+
+
+.investor-meeting-resolved p {
+  margin: 0;
+  color: #607066;
+}
+
+
+.investor-resolved-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+
+.investor-resolved-numbers span {
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #687386;
+  font-size: 0.72rem;
+}
+
+
+.investor-resolved-numbers strong {
+  color: var(--iims-navy);
+}
+
+
+.investor-no-offer {
+  margin: 20px 0;
+  padding: 19px;
+  border: 1px solid #efc4be;
+  border-radius: 16px;
+  background: #fff5f3;
+}
+
+
+.investor-no-offer h3 {
+  color: #b42318;
+}
+
+
+@media (max-width: 900px) {
+  .investor-meeting-body {
+    grid-template-columns: 1fr;
+  }
+
+  .investor-deal-column {
+    border-top: 1px solid #e7e9ef;
+    border-left: 0;
+  }
+
+  .investor-incoming-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .investor-enter-meeting {
+    width: 100%;
+  }
+}
+
+
+@media (max-width: 620px) {
+  .investor-meeting-overlay {
+    padding: 8px;
+  }
+
+  .investor-meeting-modal {
+    width: 100%;
+    max-height: 97vh;
+    border-radius: 17px;
+  }
+
+  .investor-meeting-body {
+    max-height:
+      calc(97vh - 100px);
+  }
+
+  .investor-deal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .investor-message {
+    max-width: 94%;
+  }
+}
+
+
+/* =========================================================
+   INVESTOR MEETING — SINGLE NATURAL SCROLL
+   Fix nested/independent scrolling
+========================================================= */
+
+.investor-meeting-overlay {
+  overflow-y: auto;
+  align-items: flex-start;
+}
+
+
+.investor-meeting-modal {
+  width: min(1220px, 96vw);
+
+  /*
+   * Let the modal grow with the conversation.
+   * The overlay itself becomes the scroll container.
+   */
+  max-height: none;
+  overflow: visible;
+
+  margin:
+    20px auto 40px;
+
+  border-radius: 24px;
+}
+
+
+/*
+ * Keep meeting title visible while scrolling.
+ */
+.investor-meeting-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  border-radius:
+    24px 24px 0 0;
+}
+
+
+/*
+ * Remove the old fixed-height body.
+ */
+.investor-meeting-body {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.55fr)
+    minmax(320px, 0.75fr);
+
+  min-height: 0;
+  max-height: none;
+
+  align-items: start;
+}
+
+
+/*
+ * IMPORTANT:
+ * Neither column should have its own scrollbar.
+ */
+.investor-conversation-column,
+.investor-deal-column {
+  overflow: visible;
+  max-height: none;
+}
+
+
+/*
+ * The financial deal summary stays visible
+ * while the conversation scrolls.
+ */
+.investor-deal-column {
+  position: sticky;
+
+  top: 118px;
+
+  align-self: start;
+
+  max-height:
+    calc(100vh - 145px);
+
+  overflow-y: auto;
+
+  border-left:
+    1px solid #e7e9ef;
+}
+
+
+/*
+ * More space at the bottom so the final
+ * negotiation choices are never cut off.
+ */
+.investor-conversation-column {
+  padding-bottom: 60px;
+}
+
+
+.investor-response-area {
+  scroll-margin-bottom: 80px;
+}
+
+
+/*
+ * Make final buttons comfortably visible.
+ */
+.investor-response-area button:last-child {
+  margin-bottom: 8px;
+}
+
+
+/* =========================================================
+   MOBILE / TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+  .investor-meeting-overlay {
+    padding: 10px;
+  }
+
+
+  .investor-meeting-modal {
+    width: 100%;
+    margin:
+      10px auto 30px;
+  }
+
+
+  .investor-meeting-body {
+    grid-template-columns: 1fr;
+  }
+
+
+  /*
+   * On smaller screens the deal panel
+   * becomes normal content below the chat.
+   */
+  .investor-deal-column {
+    position: static;
+
+    max-height: none;
+    overflow: visible;
+
+    border-left: 0;
+    border-top:
+      1px solid #e7e9ef;
+  }
+
+
+  .investor-meeting-header {
+    top: 0;
+  }
+}
+
+
+@media (max-width: 620px) {
+  .investor-meeting-modal {
+    max-height: none;
+    overflow: visible;
+
+    border-radius: 17px;
+  }
+
+
+  .investor-meeting-body {
+    max-height: none;
+  }
+
+
+  .investor-conversation-column {
+    padding:
+      16px 14px 50px;
+  }
+
+
+  .investor-deal-column {
+    padding:
+      18px 14px 30px;
+  }
+}
+
+
+/* =========================================================
+   FINAL ASSESSMENT — FOUR PERFORMANCE MEASURES
+========================================================= */
+
+.completion-quick-results {
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+}
+
+
+@media (max-width: 1000px) {
+  .completion-quick-results {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+@media (max-width: 600px) {
+  .completion-quick-results {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   FINAL MVP — DAY 2 WORKING CAPITAL DECISION
+========================================================= */
+
+.day2-working-capital-context {
+  margin: 22px 0;
+  padding: 22px;
+  border: 1px solid
+    rgba(237, 174, 0, 0.38);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #fffaf0
+    );
+}
+
+
+.day2-working-capital-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+
+.day2-working-capital-heading h2 {
+  margin: 5px 0 7px;
+  color: var(--iims-navy);
+  font-size: 1.45rem;
+}
+
+
+.day2-working-capital-heading > div:first-child > p:last-child {
+  max-width: 800px;
+  margin: 0;
+  color: #667085;
+  line-height: 1.55;
+}
+
+
+.day2-gap-badge {
+  min-width: 190px;
+  padding: 16px;
+  border-radius: 15px;
+  background: var(--iims-navy);
+  text-align: center;
+}
+
+
+.day2-gap-badge span {
+  display: block;
+  color: var(--iims-gold);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.day2-gap-badge strong {
+  display: block;
+  margin-top: 5px;
+  color: #ffffff;
+  font-size: 1.35rem;
+}
+
+
+.day2-working-capital-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+
+.day2-working-capital-grid article {
+  padding: 14px;
+  border: 1px solid #e3e7ed;
+  border-radius: 13px;
+  background: #ffffff;
+}
+
+
+.day2-working-capital-grid span {
+  display: block;
+  color: #7c8798;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.day2-working-capital-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--iims-navy);
+  font-size: 1rem;
+}
+
+
+.day2-working-capital-lesson {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-left: 4px solid
+    var(--iims-gold);
+  border-radius: 10px;
+  background: #fff6dc;
+}
+
+
+.day2-working-capital-lesson strong {
+  color: var(--iims-navy);
+}
+
+
+.day2-working-capital-lesson p {
+  margin: 4px 0 0;
+  color: #675f4d;
+  line-height: 1.5;
+}
+
+
+@media (max-width: 850px) {
+  .day2-working-capital-heading {
+    flex-direction: column;
+  }
+
+
+  .day2-gap-badge {
+    width: 100%;
+  }
+
+
+  .day2-working-capital-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+@media (max-width: 520px) {
+  .day2-working-capital-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   FINAL MVP — FULL 12 MONTH PROGRESS JOURNAL
+========================================================= */
+
+.progress-year-page {
+  width: 100%;
+  padding: 28px;
+  border: 1px solid #e1e5ec;
+  border-radius: 20px;
+  background: #ffffff;
+
+  /*
+   * Intentionally no fixed height.
+   * All 12 months must remain visible.
+   */
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+
+.progress-year-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+
+.progress-year-header h2 {
+  margin: 7px 0 8px;
+  color: var(--iims-navy);
+  font-size: 1.55rem;
+}
+
+
+.progress-year-header > div:first-child > p:last-child {
+  max-width: 720px;
+  margin: 0;
+  color: #687386;
+  line-height: 1.55;
+}
+
+
+.progress-year-summary {
+  min-width: 160px;
+  padding: 15px 18px;
+  border-radius: 15px;
+  background: var(--iims-navy);
+  text-align: center;
+}
+
+
+.progress-year-summary span {
+  display: block;
+  color: var(--iims-gold);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+
+.progress-year-summary strong {
+  display: block;
+  margin-top: 3px;
+  color: #ffffff;
+  font-size: 1.35rem;
+}
+
+
+.progress-year-summary small {
+  display: block;
+  margin-top: 2px;
+  color: #c8cde1;
+}
+
+
+.progress-year-bar {
+  width: 100%;
+  height: 7px;
+  margin-bottom: 23px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eceef3;
+}
+
+
+.progress-year-bar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--iims-gold);
+  transition: width 250ms ease;
+}
+
+
+.progress-year-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+
+.progress-year-card {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+
+  min-height: 130px;
+
+  overflow: hidden;
+
+  border: 1px solid #dfe3eb;
+  border-radius: 15px;
+
+  background: #ffffff;
+}
+
+
+.progress-year-number {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--iims-navy);
+}
+
+
+.progress-year-number span {
+  color: var(--iims-gold);
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+
+.progress-year-number strong {
+  margin-top: 4px;
+  color: #ffffff;
+  font-size: 1.55rem;
+}
+
+
+.progress-year-content {
+  padding: 18px 20px;
+}
+
+
+.progress-year-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+
+.progress-year-month {
+  color: #d18d00;
+  font-size: 0.85rem;
+}
+
+
+.progress-year-content h3 {
+  margin: 6px 0 0;
+  color: var(--iims-navy);
+  font-size: 1.05rem;
+}
+
+
+.progress-year-content > p {
+  margin: 11px 0 0;
+  color: #758096;
+}
+
+
+.progress-year-status {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 999px;
+
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+}
+
+
+.progress-year-status.status-completed {
+  background: #e8f7ef;
+  color: #147a4d;
+}
+
+
+.progress-year-status.status-current {
+  background: #fff3cf;
+  color: #9a6500;
+}
+
+
+.progress-year-status.status-available {
+  background: #eef1f7;
+  color: #45526a;
+}
+
+
+.progress-year-status.status-locked {
+  background: #f2f3f5;
+  color: #9299a7;
+}
+
+
+.progress-year-focus {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+
+.progress-year-focus span {
+  color: #9299a7;
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+
+.progress-year-focus strong {
+  color: #5e6879;
+  font-size: 0.7rem;
+}
+
+
+.progress-year-current {
+  border-color:
+    rgba(237, 174, 0, 0.65);
+
+  box-shadow:
+    0 8px 24px
+    rgba(237, 174, 0, 0.08);
+}
+
+
+.progress-year-completed {
+  background:
+    linear-gradient(
+      90deg,
+      #ffffff,
+      #fbfffd
+    );
+}
+
+
+.progress-year-warning {
+  margin-top: 16px;
+  padding: 12px 14px;
+
+  border: 1px solid #f1b8b2;
+  border-radius: 11px;
+
+  background: #fff3f2;
+  color: #b42318;
+  font-weight: 700;
+}
+
+
+@media (max-width: 750px) {
+  .progress-year-header {
+    flex-direction: column;
+  }
+
+
+  .progress-year-summary {
+    width: 100%;
+  }
+
+
+  .progress-year-card {
+    grid-template-columns:
+      62px 1fr;
+  }
+
+
+  .progress-year-card-top {
+    flex-direction: column;
+  }
+}

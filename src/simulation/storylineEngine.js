@@ -513,7 +513,7 @@ export const getBusinessPath = (
 
 
 // ==========================================================
-// DAY 6 BRANCHING SCENARIOS
+// MONTH 12 — YEAR-END BRANCHING SCENARIOS
 // ==========================================================
 
 const BRANCH_SCENARIOS = {
@@ -521,10 +521,10 @@ const BRANCH_SCENARIOS = {
     id:
       "branch-cash-pressure",
 
-    day: 6,
+    day: 12,
 
     month:
-      "June",
+      "December",
 
     theme:
       "Business Survival",
@@ -651,10 +651,10 @@ const BRANCH_SCENARIOS = {
     id:
       "branch-expansion",
 
-    day: 6,
+    day: 12,
 
     month:
-      "June",
+      "December",
 
     theme:
       "Strategic Growth",
@@ -783,10 +783,10 @@ const BRANCH_SCENARIOS = {
     id:
       "branch-people-pressure",
 
-    day: 6,
+    day: 12,
 
     month:
-      "June",
+      "December",
 
     theme:
       "Leadership",
@@ -912,10 +912,10 @@ const BRANCH_SCENARIOS = {
     id:
       "branch-customer-opportunity",
 
-    day: 6,
+    day: 12,
 
     month:
-      "June",
+      "December",
 
     theme:
       "Enterprise Growth",
@@ -1042,10 +1042,10 @@ const BRANCH_SCENARIOS = {
     id:
       "branch-investor-governance",
 
-    day: 6,
+    day: 12,
 
     month:
-      "June",
+      "December",
 
     theme:
       "Governance",
@@ -1170,10 +1170,10 @@ const BRANCH_SCENARIOS = {
     id:
       "branch-debt-pressure",
 
-    day: 6,
+    day: 12,
 
     month:
-      "June",
+      "December",
 
     theme:
       "Debt Management",
@@ -1298,10 +1298,10 @@ const BRANCH_SCENARIOS = {
     id:
       "branch-balanced",
 
-    day: 6,
+    day: 12,
 
     month:
-      "June",
+      "December",
 
     theme:
       "Strategy",
@@ -1428,7 +1428,7 @@ export const getBranchingScenario = (
   fallbackScenario
 ) => {
   if (
-    state.currentDay !== 6
+    state.currentDay !== 12
   ) {
     return fallbackScenario;
   }

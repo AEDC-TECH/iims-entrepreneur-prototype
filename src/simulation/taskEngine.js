@@ -259,6 +259,406 @@ const BASE_TASKS = {
         "Competitive strategy should begin with understanding why customers value the business.",
     },
   ],
+
+  // =========================================================
+  // MONTH 7 — GROWTH PRESSURE
+  // =========================================================
+
+  7: [
+    {
+      id: "task-month7-capacity",
+
+      title:
+        "Review whether the business can handle current growth",
+
+      category: "OPERATIONS",
+
+      priority: "CRITICAL",
+
+      dueDay: 7,
+
+      description:
+        "Compare customer demand, employee capacity and available cash before committing to more growth.",
+
+      completeEffects: {
+        risk: -4,
+      },
+
+      postponeEffects: {
+        risk: 5,
+        employeeMorale: -2,
+      },
+
+      learning:
+        "Growth should be supported by enough people, systems and cash to deliver what customers were promised.",
+    },
+
+    {
+      id: "task-month7-team-pressure",
+
+      title:
+        "Check employee workload and overtime pressure",
+
+      category: "PEOPLE",
+
+      priority: "IMPORTANT",
+
+      dueDay: 7,
+
+      description:
+        "Review whether increased business activity is creating unsustainable pressure on employees.",
+
+      completeEffects: {
+        employeeMorale: 3,
+        risk: -2,
+      },
+
+      postponeEffects: {
+        employeeMorale: -4,
+        risk: 2,
+      },
+
+      learning:
+        "Rapid growth can damage a business when employees are overloaded for too long.",
+    },
+  ],
+
+
+  // =========================================================
+  // MONTH 8 — CUSTOMER & MARKET PRESSURE
+  // =========================================================
+
+  8: [
+    {
+      id: "task-month8-key-customer",
+
+      title:
+        "Review profitability of the major customer contract",
+
+      category: "CUSTOMERS",
+
+      priority: "CRITICAL",
+
+      dueDay: 8,
+
+      description:
+        "Check how much revenue, cost and profit the customer contributes before negotiating the contract.",
+
+      completeEffects: {
+        risk: -3,
+      },
+
+      postponeEffects: {
+        risk: 4,
+      },
+
+      learning:
+        "A large customer is not automatically a good customer if the contract produces weak margins or excessive risk.",
+    },
+
+    {
+      id: "task-month8-market-position",
+
+      title:
+        "Review why customers choose the business",
+
+      category: "STRATEGY",
+
+      priority: "IMPORTANT",
+
+      dueDay: 8,
+
+      description:
+        "Identify whether customers value price, service, quality, specialisation, convenience or relationships most.",
+
+      completeEffects: {
+        customerSatisfaction: 2,
+        risk: -2,
+      },
+
+      postponeEffects: {
+        risk: 2,
+      },
+
+      learning:
+        "Businesses defend customers more effectively when they understand what customers actually value.",
+    },
+  ],
+
+
+  // =========================================================
+  // MONTH 9 — OPERATIONAL CRISIS
+  // =========================================================
+
+  9: [
+    {
+      id: "task-month9-continuity",
+
+      title:
+        "Prepare an operational recovery plan",
+
+      category: "OPERATIONS",
+
+      priority: "CRITICAL",
+
+      dueDay: 9,
+
+      description:
+        "Identify how customer commitments will continue while the equipment problem is being resolved.",
+
+      completeEffects: {
+        risk: -5,
+        customerSatisfaction: 2,
+      },
+
+      postponeEffects: {
+        risk: 7,
+        customerSatisfaction: -3,
+      },
+
+      learning:
+        "Business continuity planning helps a company continue serving customers when normal operations fail.",
+    },
+
+    {
+      id: "task-month9-emergency-cash",
+
+      title:
+        "Check available emergency cash",
+
+      category: "FINANCE",
+
+      priority: "CRITICAL",
+
+      dueDay: 9,
+
+      description:
+        "Review how much cash the company can safely use to resolve the operational disruption without creating a second financial crisis.",
+
+      completeEffects: {
+        risk: -3,
+      },
+
+      postponeEffects: {
+        risk: 5,
+      },
+
+      learning:
+        "Emergency decisions should consider both the immediate problem and the liquidity needed to keep the rest of the business operating.",
+    },
+  ],
+
+
+  // =========================================================
+  // MONTH 10 — EXPANSION DECISION
+  // =========================================================
+
+  10: [
+    {
+      id: "task-month10-expansion-readiness",
+
+      title:
+        "Complete an expansion readiness check",
+
+      category: "STRATEGY",
+
+      priority: "CRITICAL",
+
+      dueDay: 10,
+
+      description:
+        "Review cash, debt, profitability, customers, employees and operational capacity before committing to another market.",
+
+      completeEffects: {
+        risk: -5,
+      },
+
+      postponeEffects: {
+        risk: 6,
+      },
+
+      learning:
+        "An attractive market opportunity can still be the wrong decision when the existing business is not ready to support it.",
+    },
+
+    {
+      id: "task-month10-working-capital",
+
+      title:
+        "Estimate expansion working-capital needs",
+
+      category: "FINANCE",
+
+      priority: "IMPORTANT",
+
+      dueDay: 10,
+
+      description:
+        "Estimate the additional cash required for salaries, suppliers and operations before new expansion revenue is collected.",
+
+      completeEffects: {
+        risk: -3,
+      },
+
+      postponeEffects: {
+        risk: 4,
+      },
+
+      learning:
+        "Expansion usually requires cash before the additional revenue arrives.",
+    },
+  ],
+
+
+  // =========================================================
+  // MONTH 11 — FINANCIAL PERFORMANCE
+  // =========================================================
+
+  11: [
+    {
+      id: "task-month11-financial-review",
+
+      title:
+        "Review the full financial position",
+
+      category: "FINANCE",
+
+      priority: "CRITICAL",
+
+      dueDay: 11,
+
+      description:
+        "Review cash, revenue, profit, unpaid invoices, debt, assets and liabilities before making the year-end financial decision.",
+
+      completeEffects: {
+        risk: -5,
+      },
+
+      postponeEffects: {
+        risk: 6,
+      },
+
+      learning:
+        "No single financial number explains the health of a business. Strong decisions use the full financial picture.",
+    },
+
+    {
+      id: "task-month11-debt-review",
+
+      title:
+        "Review debt and loan repayments",
+
+      category: "FUNDING",
+
+      priority: "IMPORTANT",
+
+      dueDay: 11,
+
+      description:
+        "Check outstanding loan balances, monthly repayments and whether excess cash could safely reduce debt.",
+
+      completeEffects: {
+        risk: -3,
+      },
+
+      postponeEffects: {
+        risk: 3,
+      },
+
+      learning:
+        "Debt should be managed together with liquidity. Paying debt faster is useful only when the business keeps enough operating cash.",
+    },
+
+    {
+      id: "task-month11-receivables",
+
+      title:
+        "Review outstanding customer invoices",
+
+      category: "CUSTOMERS",
+
+      priority: "IMPORTANT",
+
+      dueDay: 11,
+
+      description:
+        "Identify customers who still owe money and prioritise collections before year-end.",
+
+      completeEffects: {
+        receivables: -10000,
+        cash: 10000,
+        risk: -2,
+      },
+
+      postponeEffects: {
+        risk: 2,
+      },
+
+      learning:
+        "Sales do not improve liquidity until the customer actually pays.",
+    },
+  ],
+
+
+  // =========================================================
+  // MONTH 12 — YEAR-END STRATEGY & REVIEW
+  // =========================================================
+
+  12: [
+    {
+      id: "task-month12-year-review",
+
+      title:
+        "Complete the year-end business review",
+
+      category: "STRATEGY",
+
+      priority: "CRITICAL",
+
+      dueDay: 12,
+
+      description:
+        "Review what happened to revenue, cash, debt, customers, employees and business risk across the full simulated year.",
+
+      completeEffects: {
+        risk: -4,
+      },
+
+      postponeEffects: {
+        risk: 5,
+      },
+
+      learning:
+        "Year-end review helps entrepreneurs separate activity from progress and decide what the business should improve next.",
+    },
+
+    {
+      id: "task-month12-next-year",
+
+      title:
+        "Set priorities for the next business year",
+
+      category: "STRATEGY",
+
+      priority: "IMPORTANT",
+
+      dueDay: 12,
+
+      description:
+        "Choose the most important priorities for the next year based on the condition of the business you created.",
+
+      completeEffects: {
+        risk: -3,
+      },
+
+      postponeEffects: {
+        risk: 2,
+      },
+
+      learning:
+        "Strategy is not a list of everything a business could do. It is deciding what matters most with limited resources.",
+    },
+  ],
 };
 
 

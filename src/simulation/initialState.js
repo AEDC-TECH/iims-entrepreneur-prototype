@@ -53,6 +53,17 @@ export const createInitialState = () => {
       ...startingBusiness,
     },
 
+    operations: {
+      capacity: 100,
+      equipmentHealth: 100,
+      deliveryPerformance: 100,
+      backlog: 0,
+    },
+
+    businessIssues: [],
+
+    recentIssueImpacts: [],
+
     skills: {
       cashFlow: 50,
       financialPlanning: 50,

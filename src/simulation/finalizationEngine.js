@@ -19,9 +19,9 @@ export const isJourneyComplete = (
     state.completedDays || [];
 
   return (
-    completedDays.includes(6) ||
+    completedDays.includes(12) ||
     (
-      state.currentDay === 6 &&
+      state.currentDay === 12 &&
       state.dayComplete
     )
   );
@@ -166,31 +166,31 @@ export const getEvidenceReadiness = (
   score +=
     Math.min(
       decisions,
-      6
-    ) * 8;
+      12
+    ) * 4;
 
   score +=
     Math.min(
       completedDays,
-      6
-    ) * 6;
+      12
+    ) * 2;
 
   score +=
     Math.min(
       reflections,
-      6
-    ) * 3;
+      12
+    ) * 1;
 
   score +=
     Math.min(
       conversations,
       3
-    ) * 3;
+    ) * 2;
 
   score +=
     Math.min(
       tasks,
-      8
+      10
     ) * 1;
 
 
@@ -229,7 +229,7 @@ export const getMvpReadiness = (
               state.completedDays ||
               []
             ).length /
-            6
+            12
           ) *
             100
         ),

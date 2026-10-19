@@ -924,7 +924,7 @@ export const getPerformanceReport = (
           Math.round(
             (
               evidence.completedDays /
-              6
+              12
             ) *
               100
           ),

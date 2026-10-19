@@ -1,4 +1,30 @@
 import {
+  applyTaskOperationalImpact,
+  applyOperationalCarryover,
+} from "./simulation/operationalImpactEngine";
+
+import {
+  getFinalAssessmentScore,
+} from "./simulation/assessmentScoreEngine";
+
+import {
+  getDistressCapitalState,
+  previewNegotiatedDistressDeal,
+  applyDistressCapitalDecision,
+} from "./simulation/distressCapitalEngine";
+
+import {
+  getWorkingCapitalCrisis,
+  previewWorkingCapitalDecision,
+  applyWorkingCapitalDecision,
+} from "./simulation/workingCapitalEngine";
+
+import {
+  adaptScenarioForOperations,
+  applyDecisionOperationsEffects,
+} from "./simulation/operationsAdaptiveEngine";
+
+import {
   useEffect,
   useMemo,
   useState,
@@ -122,7 +148,12 @@ import {
   saveSimulation,
 } from "./simulation/engine";
 
-const MAX_MVP_DAY = 6;
+const MAX_MVP_DAY = 12;
+
+
+const DAY2_WORKING_CAPITAL_PURPOSE =
+  "Short-term working capital — delayed customer payment";
+
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat(
@@ -186,11 +217,21 @@ const reflectionReasons = [
 
 
 import {
+  getDecisionReflectionContext,
+} from "./simulation/reflectionEngine";
+
+
+import {
   acceptLoanOffer,
   calculateLoanOffer,
   getLoanPortfolio,
-  processLoanPayments,
+  getLoanPaymentsDue,
+  getLoanPaymentPreview,
+  previewLoanPaymentDecision,
+  applyLoanPaymentDecision,
   applyExtraLoanPayment,
+  previewStrategicDebtReduction,
+  applyStrategicDebtReduction,
   calculateExtraLoanPaymentImpact,
   getExtraLoanPaymentCapacity,
 } from "./simulation/loanEngine";
@@ -245,6 +286,11 @@ function App() {
     selectedDecisionId,
     setSelectedDecisionId,
   ] = useState(null);
+
+  const [
+    yearEndDebtPayment,
+    setYearEndDebtPayment,
+  ] = useState("");
 
   const [
     selectedMessage,
@@ -312,6 +358,11 @@ function App() {
   useEffect(() => {
     saveSimulation(simulation);
   }, [simulation]);
+
+
+  useEffect(() => {
+    setYearEndDebtPayment("");
+  }, [simulation.currentDay]);
 
 
   const relationshipEvents =
@@ -524,7 +575,7 @@ function App() {
   const baseScenario =
     scenarios.find(
       (scenario) =>
-        scenario.day ===
+        scenario?.day ===
         simulation.currentDay
     );
 
@@ -546,9 +597,12 @@ function App() {
   const currentScenario =
     useMemo(
       () =>
-        getBranchingScenario(
-          simulation,
-          adaptiveScenario
+        adaptScenarioForOperations(
+          getBranchingScenario(
+            simulation,
+            adaptiveScenario
+          ),
+          simulation
         ),
       [
         simulation,
@@ -819,6 +873,178 @@ function App() {
     simulation.currentDay >
     MAX_MVP_DAY;
 
+
+  const businessYearComplete =
+    simulation.currentDay >
+      MAX_MVP_DAY ||
+    (
+      simulation.currentDay ===
+        MAX_MVP_DAY &&
+      simulation.dayComplete
+    );
+
+  // =========================================================
+  // MONTH 11 — INTERACTIVE DEBT REPAYMENT
+  // =========================================================
+
+  const yearEndCash =
+    Math.max(
+      0,
+      Number(
+        simulation.business?.cash || 0
+      )
+    );
+
+  const yearEndDebt =
+    Math.max(
+      0,
+      Number(
+        simulation.business?.debt || 0
+      )
+    );
+
+  const yearEndLiabilities =
+    Math.max(
+      0,
+      Number(
+        simulation.business
+          ?.liabilities || 0
+      )
+    );
+
+  const yearEndMonthlyExpenses =
+    Math.max(
+      0,
+      Number(
+        simulation.business
+          ?.expenses || 0
+      )
+    );
+
+  /*
+   * Recommended reserve:
+   * preserve approximately 1.5 months
+   * of current operating expenses.
+   */
+  const yearEndReserveTarget =
+    Math.round(
+      yearEndMonthlyExpenses *
+        1.5
+    );
+
+  /*
+   * Absolute limit:
+   * cannot repay more than the
+   * available cash or debt owed.
+   */
+  const yearEndMaximumPayment =
+    Math.max(
+      0,
+      Math.min(
+        yearEndCash,
+        yearEndDebt
+      )
+    );
+
+  /*
+   * Recommended safe amount:
+   * cash remaining above reserve.
+   *
+   * This is guidance only.
+   * The entrepreneur may make a
+   * riskier decision deliberately.
+   */
+  const yearEndMaximumSafePayment =
+    Math.max(
+      0,
+      Math.min(
+        yearEndDebt,
+        yearEndCash -
+          yearEndReserveTarget
+      )
+    );
+
+  const yearEndDebtPaymentNumber =
+    Number(
+      yearEndDebtPayment
+    );
+
+  const yearEndPreviewPayment =
+    Number.isFinite(
+      yearEndDebtPaymentNumber
+    )
+      ? Math.max(
+          0,
+          Math.min(
+            yearEndDebtPaymentNumber,
+            yearEndMaximumPayment
+          )
+        )
+      : 0;
+
+  const yearEndCashAfterPayment =
+    Math.max(
+      0,
+      yearEndCash -
+        yearEndPreviewPayment
+    );
+
+  const yearEndDebtAfterPayment =
+    Math.max(
+      0,
+      yearEndDebt -
+        yearEndPreviewPayment
+    );
+
+  const yearEndLiabilitiesAfterPayment =
+    Math.max(
+      0,
+      yearEndLiabilities -
+        Math.min(
+          yearEndPreviewPayment,
+          yearEndLiabilities
+        )
+    );
+
+  const yearEndCashCoverAfter =
+    yearEndMonthlyExpenses > 0
+      ? yearEndCashAfterPayment /
+        yearEndMonthlyExpenses
+      : 0;
+
+  const yearEndPaymentExceedsCash =
+    Number.isFinite(
+      yearEndDebtPaymentNumber
+    ) &&
+    yearEndDebtPaymentNumber >
+      yearEndCash;
+
+  const yearEndPaymentExceedsDebt =
+    Number.isFinite(
+      yearEndDebtPaymentNumber
+    ) &&
+    yearEndDebtPaymentNumber >
+      yearEndDebt;
+
+  const yearEndPaymentBelowReserve =
+    yearEndPreviewPayment > 0 &&
+    yearEndCashAfterPayment <
+      yearEndReserveTarget;
+
+  const yearEndPaymentDangerous =
+    yearEndPreviewPayment > 0 &&
+    yearEndMonthlyExpenses > 0 &&
+    yearEndCashCoverAfter < 0.5;
+
+  const yearEndDebtDecisionActive =
+    simulation.currentDay === 11 &&
+    currentScenario?.id ===
+      "financial-year-review" &&
+    selectedDecisionId ===
+      "financial-reduce-debt" &&
+    !simulation.dayComplete;
+
+
   const handleDecision = () => {
     if (
       !selectedDecisionId ||
@@ -836,6 +1062,91 @@ function App() {
           item.id ===
           selectedDecisionId
       );
+
+    /*
+     * ======================================================
+     * DAY 2 WORKING CAPITAL APPLICATION
+     * ======================================================
+     *
+     * Choosing short-term finance does NOT automatically
+     * borrow the full R80,000 delayed invoice.
+     *
+     * Management must decide how much cash is actually
+     * required to meet the immediate obligations.
+     */
+    if (
+      simulation.currentDay === 2 &&
+      decision?.title ===
+        "Use short-term finance"
+    ) {
+      const payrollDue =
+        72000;
+
+      const supplierDue =
+        35000;
+
+      const immediateObligations =
+        payrollDue +
+        supplierDue;
+
+      const availableCash =
+        Number(
+          simulation
+            .business
+            ?.cash ||
+          0
+        );
+
+      const fundingGap =
+        Math.max(
+          0,
+          immediateObligations -
+          availableCash
+        );
+
+      /*
+       * Suggest the live funding gap rounded
+       * upward to the nearest R5,000.
+       *
+       * The entrepreneur may still change it.
+       */
+      const suggestedAmount =
+        Math.max(
+          10000,
+          Math.ceil(
+            fundingGap /
+            5000
+          ) * 5000
+        );
+
+
+      setLoanAmount(
+        suggestedAmount
+      );
+
+      setLoanTermMonths(
+        6
+      );
+
+      setLoanPurpose(
+        DAY2_WORKING_CAPITAL_PURPOSE
+      );
+
+      setLoanOffer(null);
+      setLoanNotice("");
+
+      setLoanApplicationOpen(
+        true
+      );
+
+      setActiveView(
+        "finance"
+      );
+
+
+      return;
+    }
+
 
     if (
       decision?.id ===
@@ -865,14 +1176,266 @@ function App() {
     }
 
 
+    let decisionToApply =
+      decision;
+
+    /*
+     * Most decisions begin with the current
+     * simulation state.
+     *
+     * Some complex financial decisions first
+     * modify a real financial account before
+     * makeDecision records the learning/scoring
+     * outcome.
+     */
+    let decisionBaseState =
+      simulation;
+
+
+    if (
+      decision?.id ===
+      "financial-reduce-debt"
+    ) {
+      const payment =
+        Number(
+          yearEndDebtPayment
+        );
+
+
+      const strategicPreview =
+        previewStrategicDebtReduction(
+          simulation,
+          payment
+        );
+
+
+      if (
+        !strategicPreview.valid
+      ) {
+        setNotice(
+          strategicPreview.reason ||
+            "The debt repayment could not be completed."
+        );
+
+        return;
+      }
+
+
+      /*
+       * Apply the real financial transaction
+       * first.
+       *
+       * This updates actual loan balances AND
+       * aggregate business debt.
+       */
+      const strategicResult =
+        applyStrategicDebtReduction(
+          simulation,
+          payment
+        );
+
+
+      if (
+        !strategicResult.applied
+      ) {
+        setNotice(
+          strategicResult.reason ||
+            "The debt repayment could not be completed."
+        );
+
+        return;
+      }
+
+
+      decisionBaseState =
+        strategicResult.state;
+
+
+      const impact =
+        strategicResult.impact;
+
+
+      const remainingCash =
+        impact.cashAfter;
+
+
+      const remainingDebt =
+        impact.debtAfter;
+
+
+      const cashCover =
+        impact.cashCoverAfter;
+
+
+      let riskEffect = -5;
+      let planningEffect = 8;
+      let riskSkillEffect = 8;
+      let cashFlowEffect = 6;
+
+
+      let headline =
+        "You reduced debt while protecting liquidity";
+
+
+      let explanation =
+        `You used ${formatCurrency(
+          payment
+        )} of company cash to reduce debt. The business retains ${formatCurrency(
+          remainingCash
+        )} in cash and ${formatCurrency(
+          remainingDebt
+        )} in outstanding debt.`;
+
+
+      if (
+        cashCover < 0.5
+      ) {
+        riskEffect = 8;
+        planningEffect = -3;
+        riskSkillEffect = -4;
+        cashFlowEffect = -5;
+
+        headline =
+          "You reduced debt aggressively but created liquidity pressure";
+
+        explanation =
+          `You repaid ${formatCurrency(
+            payment
+          )} of debt, but only ${formatCurrency(
+            remainingCash
+          )} remains in cash. Debt is lower, but the company now has less than half a month of operating-expense cover.`;
+      } else if (
+        cashCover < 1
+      ) {
+        riskEffect = 4;
+        planningEffect = 2;
+        riskSkillEffect = 1;
+        cashFlowEffect = -2;
+
+        headline =
+          "You reduced debt but tightened the cash position";
+
+        explanation =
+          `You repaid ${formatCurrency(
+            payment
+          )} of debt. Debt is lower, but the remaining ${formatCurrency(
+            remainingCash
+          )} does not cover one full month of current operating expenses.`;
+      } else if (
+        cashCover < 1.5
+      ) {
+        riskEffect = -1;
+        planningEffect = 6;
+        riskSkillEffect = 5;
+        cashFlowEffect = 3;
+
+        headline =
+          "You balanced debt reduction with liquidity";
+
+        explanation =
+          `You repaid ${formatCurrency(
+            payment
+          )} while keeping approximately ${cashCover.toFixed(
+            1
+          )} months of operating-expense cover available.`;
+      }
+
+
+      const loanAllocationText =
+        impact.allocations.length >
+        0
+          ? impact.allocations
+              .map(
+                (allocation) =>
+                  `${allocation.lender}: ${formatCurrency(
+                    allocation.payment
+                  )} principal payment, balance ${formatCurrency(
+                    allocation.openingBalance
+                  )} → ${formatCurrency(
+                    allocation.newBalance
+                  )}`
+              )
+              .join(" | ")
+          : "No individual loan account was affected; the payment reduced other recorded business debt.";
+
+
+      const savingsText =
+        impact.estimatedInterestSaved >
+        0
+          ? ` Based on the current repayment schedules, this decision is estimated to save approximately ${formatCurrency(
+              impact.estimatedInterestSaved
+            )} in future interest.`
+          : "";
+
+
+      decisionToApply = {
+        ...decision,
+
+        title:
+          `Repay ${formatCurrency(
+            payment
+          )} of debt`,
+
+        description:
+          `Use ${formatCurrency(
+            payment
+          )} of available company cash to reduce real outstanding debt. ${loanAllocationText}`,
+
+        /*
+         * Cash/debt/liabilities have ALREADY
+         * changed through the real loan engine.
+         *
+         * Do not deduct them again here.
+         */
+        immediateEffects: {
+          risk:
+            riskEffect,
+        },
+
+        skillEffects: {
+          fundingDecisions: 8,
+
+          financialPlanning:
+            planningEffect,
+
+          riskManagement:
+            riskSkillEffect,
+
+          cashFlow:
+            cashFlowEffect,
+        },
+
+        outcome: {
+          headline,
+
+          explanation:
+            `${explanation} ${loanAllocationText}.${savingsText}`,
+
+          lesson:
+            "Debt repayment improves solvency, but it uses real cash. Paying loan principal can reduce future interest and shorten the repayment period, but management must avoid weakening the cash needed for salaries, suppliers and normal operations.",
+        },
+
+        delayedConsequences:
+          decision.delayedConsequences ||
+          [],
+      };
+    }
+
+
     const currentScrollPosition =
       window.scrollY;
 
-    const next =
+    const decisionState =
       makeDecision(
-        simulation,
+        decisionBaseState,
         currentScenario,
-        decision
+        decisionToApply
+      );
+
+    const next =
+      applyDecisionOperationsEffects(
+        decisionState,
+        decisionToApply
       );
 
     setSimulation(next);
@@ -898,6 +1461,40 @@ function App() {
 
 
   const handleGenerateLoanOffer = () => {
+    const distress =
+      getDistressCapitalState(
+        simulation
+      );
+
+
+    const rescueHandledToday =
+      Boolean(
+        simulation
+          ?.distressCapital
+          ?.resolved
+      ) &&
+      Number(
+        simulation
+          ?.distressCapital
+          ?.resolvedDay
+      ) ===
+      Number(
+        simulation.currentDay
+      );
+
+
+    if (
+      distress.active ||
+      rescueHandledToday
+    ) {
+      setLoanNotice(
+        "Normal bank finance is unavailable while the company is in structural financial distress. Management must repair the capital structure before taking on additional borrowing."
+      );
+
+      return;
+    }
+
+
     const amount =
       Number(loanAmount);
 
@@ -919,14 +1516,44 @@ function App() {
     }
 
 
+    const selectedFinancingDecision =
+      currentScenario
+        ?.decisions
+        ?.find(
+          (item) =>
+            item.id ===
+            selectedDecisionId
+        );
+
+
+    const isDay2WorkingCapital =
+      simulation.currentDay === 2 &&
+      selectedFinancingDecision
+        ?.title ===
+        "Use short-term finance";
+
+
+    const validLoanTerms =
+      isDay2WorkingCapital
+        ? [
+            3,
+            6,
+            9,
+            12,
+          ]
+        : [
+            12,
+            24,
+            36,
+            48,
+            60,
+          ];
+
+
     if (
-      ![
-        12,
-        24,
-        36,
-        48,
-        60,
-      ].includes(term)
+      !validLoanTerms.includes(
+        term
+      )
     ) {
       setLoanNotice(
         "Choose a valid repayment period."
@@ -972,6 +1599,541 @@ function App() {
       setLoanNotice(
         "There is no approved loan offer to accept."
       );
+
+      return;
+    }
+
+
+    /*
+     * ======================================================
+     * DAY 2 REAL WORKING CAPITAL LOAN
+     * ======================================================
+     */
+    const selectedScenarioDecision =
+      currentScenario
+        ?.decisions
+        ?.find(
+          (item) =>
+            item.id ===
+            selectedDecisionId
+        );
+
+
+    const isDay2WorkingCapital =
+      simulation.currentDay === 2 &&
+      selectedScenarioDecision
+        ?.title ===
+        "Use short-term finance";
+
+
+    if (
+      isDay2WorkingCapital
+    ) {
+      const customerInvoice =
+        80000;
+
+      const payrollDue =
+        72000;
+
+      const supplierDue =
+        35000;
+
+      const immediateObligations =
+        payrollDue +
+        supplierDue;
+
+
+      const businessBefore =
+        simulation.business ||
+        {};
+
+
+      const cashBefore =
+        Number(
+          businessBefore.cash ||
+          0
+        );
+
+      const debtBefore =
+        Number(
+          businessBefore.debt ||
+          0
+        );
+
+      const liabilitiesBefore =
+        Number(
+          businessBefore
+            .liabilities ||
+          0
+        );
+
+      const expensesBefore =
+        Number(
+          businessBefore
+            .expenses ||
+          0
+        );
+
+      const riskBefore =
+        Number(
+          businessBefore.risk ||
+          0
+        );
+
+
+      const fundingGap =
+        Math.max(
+          0,
+          immediateObligations -
+          cashBefore
+        );
+
+
+      const requestedAmount =
+        Number(
+          loanOffer
+            .application
+            ?.amount ||
+          loanAmount ||
+          0
+        );
+
+
+      const approvedAmount =
+        Number(
+          loanOffer
+            .approvedAmount ||
+          0
+        );
+
+
+      const termMonths =
+        Number(
+          loanOffer
+            .application
+            ?.termMonths ||
+          loanTermMonths ||
+          0
+        );
+
+
+      /*
+       * Keep the list of existing loan IDs so
+       * the new loan can be tagged afterwards.
+       */
+      const existingLoanIds =
+        new Set(
+          (
+            simulation
+              .financing
+              ?.loans ||
+            []
+          ).map(
+            (loan) =>
+              loan.id
+          )
+        );
+
+
+      /*
+       * This is the ONLY place where borrowed
+       * cash / debt / liabilities are created.
+       */
+      let nextState =
+        acceptLoanOffer(
+          simulation,
+          loanOffer
+        );
+
+
+      /*
+       * Mark the new account as the Day 2
+       * working-capital facility.
+       *
+       * lastPaymentDecisionDay ensures it does
+       * not immediately demand another payment
+       * during the same simulated month.
+       */
+      nextState = {
+        ...nextState,
+
+        financing: {
+          ...(
+            nextState.financing ||
+            {}
+          ),
+
+          loans: (
+            nextState
+              .financing
+              ?.loans ||
+            []
+          ).map(
+            (loan) =>
+              existingLoanIds.has(
+                loan.id
+              )
+                ? loan
+                : {
+                    ...loan,
+
+                    source:
+                      "DAY_2_WORKING_CAPITAL",
+
+                    purpose:
+                      DAY2_WORKING_CAPITAL_PURPOSE,
+
+                    lastPaymentDecisionDay:
+                      simulation.currentDay,
+                  }
+          ),
+        },
+      };
+
+
+      const coverageRatio =
+        fundingGap > 0
+          ? approvedAmount /
+            fundingGap
+          : Infinity;
+
+
+      let riskEffect = 1;
+
+      let fundingSkill = 8;
+      let planningSkill = 8;
+      let cashFlowSkill = 8;
+      let riskSkill = 5;
+
+      let headline =
+        "You matched borrowing to the short-term cash-flow gap";
+
+      let explanation =
+        `The business borrowed ${formatCurrency(
+          approvedAmount
+        )} against an estimated immediate funding gap of ${formatCurrency(
+          fundingGap
+        )}. The facility runs for ${termMonths} months with an estimated monthly repayment of ${formatCurrency(
+          loanOffer.monthlyPayment
+        )}.`;
+
+
+      if (
+        fundingGap <= 0
+      ) {
+        riskEffect = 6;
+
+        fundingSkill = -5;
+        planningSkill = -5;
+        cashFlowSkill = -4;
+        riskSkill = -4;
+
+        headline =
+          "You borrowed even though the immediate obligations were already funded";
+
+        explanation =
+          `The company already had enough available cash to cover the ${formatCurrency(
+            immediateObligations
+          )} of immediate obligations, but management still borrowed ${formatCurrency(
+            approvedAmount
+          )}. This creates repayments and interest without solving an actual funding gap.`;
+      }
+
+      else if (
+        coverageRatio < 0.8
+      ) {
+        riskEffect = 5;
+
+        fundingSkill = -3;
+        planningSkill = -4;
+        cashFlowSkill = -5;
+        riskSkill = -2;
+
+        headline =
+          "The finance raised does not fully cover the immediate cash gap";
+
+        explanation =
+          `The estimated funding gap was ${formatCurrency(
+            fundingGap
+          )}, but only ${formatCurrency(
+            approvedAmount
+          )} was borrowed. Management has reduced the shortage, but payroll and supplier obligations may still place pressure on cash.`;
+      }
+
+      else if (
+        coverageRatio <= 1.2
+      ) {
+        riskEffect = 1;
+
+        fundingSkill = 8;
+        planningSkill = 9;
+        cashFlowSkill = 9;
+        riskSkill = 6;
+
+        headline =
+          "You matched short-term borrowing to the cash-flow requirement";
+
+        explanation =
+          `The estimated funding gap was ${formatCurrency(
+            fundingGap
+          )} and the business borrowed ${formatCurrency(
+            approvedAmount
+          )}. The amount provides working-capital support without creating substantially more debt than the immediate business need.`;
+      }
+
+      else if (
+        coverageRatio <= 1.5
+      ) {
+        riskEffect = 3;
+
+        fundingSkill = 4;
+        planningSkill = 3;
+        cashFlowSkill = 3;
+        riskSkill = 1;
+
+        headline =
+          "You created an additional cash buffer, but also increased borrowing";
+
+        explanation =
+          `The business needed approximately ${formatCurrency(
+            fundingGap
+          )} but borrowed ${formatCurrency(
+            approvedAmount
+          )}. The extra liquidity provides breathing room, although future repayments are now larger than necessary for the immediate problem.`;
+      }
+
+      else {
+        riskEffect = 7;
+
+        fundingSkill = -4;
+        planningSkill = -5;
+        cashFlowSkill = -4;
+        riskSkill = -5;
+
+        headline =
+          "You overborrowed for a short-term cash-flow problem";
+
+        explanation =
+          `The estimated funding gap was ${formatCurrency(
+            fundingGap
+          )}, but management borrowed ${formatCurrency(
+            approvedAmount
+          )}. The company has more cash today, but it has also created substantially more debt and repayment pressure than the immediate problem required.`;
+      }
+
+
+      /*
+       * makeDecision records the scenario as complete,
+       * scores the entrepreneur and creates the normal
+       * reflection/outcome workflow.
+       *
+       * IMPORTANT:
+       * Cash / debt / liabilities are NOT included here
+       * because acceptLoanOffer already applied them.
+       */
+      const recordedDecision = {
+        ...selectedScenarioDecision,
+
+        title:
+          `Use ${formatCurrency(
+            approvedAmount
+          )} of short-term finance`,
+
+        description:
+          `Borrow ${formatCurrency(
+            approvedAmount
+          )} over ${termMonths} months to manage the delayed customer payment and immediate working-capital obligations.`,
+
+        immediateEffects: {
+          risk:
+            riskEffect,
+        },
+
+        skillEffects: {
+          fundingDecisions:
+            fundingSkill,
+
+          financialPlanning:
+            planningSkill,
+
+          cashFlow:
+            cashFlowSkill,
+
+          riskManagement:
+            riskSkill,
+        },
+
+        delayedConsequences: [],
+
+        outcome: {
+          headline,
+
+          explanation:
+            `${explanation} Estimated total interest is ${formatCurrency(
+              loanOffer.totalInterest
+            )}.`,
+
+          lesson:
+            "A delayed customer payment creates a cash-flow problem, not an automatic reason to borrow the full invoice value. Good working-capital management matches borrowing to the actual cash requirement and future repayment capacity.",
+        },
+      };
+
+
+      nextState =
+        makeDecision(
+          nextState,
+          currentScenario,
+          recordedDecision
+        );
+
+
+      /*
+       * Calculate the REAL changes caused by:
+       * 1. accepting the loan, and
+       * 2. the management-quality risk effect.
+       *
+       * These values are DISPLAYED in OutcomePanel.
+       * They are not applied again.
+       */
+      const actualEffects = {
+        cash:
+          Number(
+            nextState.business.cash ||
+            0
+          ) -
+          cashBefore,
+
+        debt:
+          Number(
+            nextState.business.debt ||
+            0
+          ) -
+          debtBefore,
+
+        liabilities:
+          Number(
+            nextState
+              .business
+              .liabilities ||
+            0
+          ) -
+          liabilitiesBefore,
+
+        expenses:
+          Number(
+            nextState
+              .business
+              .expenses ||
+            0
+          ) -
+          expensesBefore,
+
+        risk:
+          Number(
+            nextState.business.risk ||
+            0
+          ) -
+          riskBefore,
+      };
+
+
+      nextState = {
+        ...nextState,
+
+        lastOutcome: {
+          ...(
+            nextState.lastOutcome ||
+            {}
+          ),
+
+          immediateEffects:
+            actualEffects,
+        },
+
+        day2WorkingCapitalFunding: {
+          day:
+            2,
+
+          customerInvoice,
+
+          payrollDue,
+
+          supplierDue,
+
+          immediateObligations,
+
+          cashBefore,
+
+          fundingGap,
+
+          requestedAmount,
+
+          approvedAmount,
+
+          termMonths,
+
+          interestRate:
+            Number(
+              loanOffer.interestRate ||
+              0
+            ),
+
+          monthlyPayment:
+            Number(
+              loanOffer.monthlyPayment ||
+              0
+            ),
+
+          totalInterest:
+            Number(
+              loanOffer.totalInterest ||
+              0
+            ),
+
+          initiationFee:
+            Number(
+              loanOffer.initiationFee ||
+              0
+            ),
+
+          cashAfter:
+            Number(
+              nextState.business.cash ||
+              0
+            ),
+
+          coverageRatio:
+            Number.isFinite(
+              coverageRatio
+            )
+              ? coverageRatio
+              : null,
+
+          assessmentHeadline:
+            headline,
+
+          createdAt:
+            new Date()
+              .toISOString(),
+        },
+      };
+
+
+      setSimulation(
+        nextState
+      );
+
+      setLoanApplicationOpen(
+        false
+      );
+
+      setLoanOffer(null);
+      setLoanNotice("");
+
+      setActiveView(
+        "business"
+      );
+
 
       return;
     }
@@ -1297,9 +2459,13 @@ function App() {
     }
 
     setSimulation(
-      completeBusinessTask(
-        simulation,
-        task
+      applyTaskOperationalImpact(
+        completeBusinessTask(
+          simulation,
+          task
+        ),
+        task,
+        "complete"
       )
     );
 
@@ -1340,15 +2506,51 @@ function App() {
     }
 
     setSimulation(
-      postponeBusinessTask(
-        simulation,
-        task
+      applyTaskOperationalImpact(
+        postponeBusinessTask(
+          simulation,
+          task
+        ),
+        task,
+        "postpone"
       )
     );
 
     setSelectedTaskId(null);
 
     setTaskNotice("");
+  };
+
+
+  const handleDistressCapitalDecision = (
+    decision
+  ) => {
+    const result =
+      applyDistressCapitalDecision(
+        simulation,
+        decision
+      );
+
+
+    if (!result.applied) {
+      setRecoveryNotice(
+        result.reason ||
+          "The investor transaction could not be completed."
+      );
+
+      return result;
+    }
+
+
+    setSimulation(
+      result.state
+    );
+
+    setRecoveryNotice("");
+    setNotice("");
+
+
+    return result;
   };
 
 
@@ -1403,6 +2605,20 @@ function App() {
   };
 
 
+  const [
+    pendingLoanAdvanceState,
+    setPendingLoanAdvanceState,
+  ] =
+    useState(null);
+
+
+  const [
+    loanPaymentDecisionNotice,
+    setLoanPaymentDecisionNotice,
+  ] =
+    useState("");
+
+
   const handleExtraLoanPayment = (
     loanId,
     amount
@@ -1424,7 +2640,178 @@ function App() {
   };
 
 
+  const handleLoanPaymentDecision = ({
+    loanId,
+    action,
+    amount = 0,
+  }) => {
+    if (!pendingLoanAdvanceState) {
+      return {
+        applied: false,
+        reason:
+          "There is no pending loan payment.",
+      };
+    }
+
+
+    const result =
+      applyLoanPaymentDecision(
+        pendingLoanAdvanceState,
+        {
+          loanId,
+          action,
+          amount,
+        }
+      );
+
+
+    if (!result.applied) {
+      setLoanPaymentDecisionNotice(
+        result.reason ||
+          "The payment decision could not be completed."
+      );
+
+      return result;
+    }
+
+
+    const remainingPayments =
+      getLoanPaymentsDue(
+        result.state
+      );
+
+
+    if (
+      remainingPayments.length >
+      0
+    ) {
+      setPendingLoanAdvanceState(
+        result.state
+      );
+
+      setLoanPaymentDecisionNotice(
+        "Payment decision recorded. Another loan account still needs your attention."
+      );
+
+      return result;
+    }
+
+
+    /*
+     * All loan obligations for the newly
+     * opened business period have now been
+     * handled.
+     */
+    setSimulation(
+      result.state
+    );
+
+    setPendingLoanAdvanceState(
+      null
+    );
+
+    setLoanPaymentDecisionNotice(
+      ""
+    );
+
+    setSelectedDecisionId(null);
+    setSelectedMessage(null);
+    setReflectionReason("");
+    setReflectionConfidence(3);
+    setReflectionText("");
+    setNotice("");
+    setActiveView("business");
+
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+
+
+    return result;
+  };
+
+
+  const handleWorkingCapitalDecision = ({
+    choice,
+    cashContribution,
+  }) => {
+    const result =
+      applyWorkingCapitalDecision(
+        simulation,
+        {
+          choice,
+          cashContribution,
+        }
+      );
+
+
+    if (!result.applied) {
+      setNotice(
+        result.reason ||
+          "The working-capital decision could not be completed."
+      );
+
+      return result;
+    }
+
+
+    setSimulation(
+      result.state
+    );
+
+    setNotice("");
+
+
+    return result;
+  };
+
+
   const handleNextDay = () => {
+    const distress =
+      getDistressCapitalState(
+        simulation
+      );
+
+
+    if (distress.active) {
+      setNotice(
+        "The company is in structural financial distress. Normal recovery actions are no longer enough. Management must make a capital-structure decision before the next business period can open."
+      );
+
+      setActiveView(
+        "business"
+      );
+
+
+      setTimeout(
+        () => {
+          const section =
+            document.getElementById(
+              "distress-capital-centre"
+            );
+
+
+          if (section) {
+            section.scrollIntoView({
+              behavior:
+                "smooth",
+
+              block:
+                "start",
+            });
+          }
+        },
+        0
+      );
+
+
+      return;
+    }
+
+
     if (
       currentBusinessEvent &&
       currentBusinessEvent.status !==
@@ -1473,10 +2860,27 @@ function App() {
           item.day === simulation.currentDay
       );
 
+
+    const structuralRescueTakenToday =
+      Boolean(
+        simulation
+          ?.distressCapital
+          ?.resolved
+      ) &&
+      Number(
+        simulation
+          ?.distressCapital
+          ?.resolvedDay
+      ) ===
+      Number(
+        simulation.currentDay
+      );
+
     if (
       simulation.currentDay === MAX_MVP_DAY &&
       recoveryState.level !== "normal" &&
-      !recoveryTakenToday
+      !recoveryTakenToday &&
+      !structuralRescueTakenToday
     ) {
       setNotice(
         "Your business is under financial pressure. Complete at least one recovery action before closing this business period."
@@ -1485,8 +2889,55 @@ function App() {
       return;
     }
 
+    /*
+     * MONTH 9 WORKING-CAPITAL CHECKPOINT
+     *
+     * The entrepreneur cannot simply leave
+     * September while the urgent funding
+     * requirement is unresolved.
+     */
+    if (
+      simulation.currentDay === 9 &&
+      simulation
+        .workingCapitalCrisis
+        ?.resolved !== true
+    ) {
+      setNotice(
+        "The urgent working-capital requirement still needs a management decision before October can open."
+      );
+
+
+      const crisisSection =
+        document.getElementById(
+          "working-capital-crisis"
+        );
+
+
+      if (crisisSection) {
+        crisisSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+
+
+      return;
+    }
+
+
     const result =
       advanceDay(simulation);
+
+
+    if (
+      !result.blocked &&
+      result.state
+    ) {
+      result.state =
+        applyOperationalCarryover(
+          result.state
+        );
+    }
 
     if (result.blocked) {
       setNotice(result.reason);
@@ -1494,12 +2945,56 @@ function App() {
     }
 
     const nextState =
+      result.state;
+
+
+    /*
+     * The old system automatically processed
+     * loan repayments here.
+     *
+     * We now stop the transition and require
+     * the entrepreneur to actively manage the
+     * loan obligation.
+     */
+    if (
       simulation.currentDay <
         MAX_MVP_DAY
-        ? processLoanPayments(
-            result.state
-          )
-        : result.state;
+    ) {
+      const paymentsDue =
+        getLoanPaymentsDue(
+          nextState
+        );
+
+
+      if (
+        paymentsDue.length >
+        0
+      ) {
+        setPendingLoanAdvanceState(
+          nextState
+        );
+
+        setLoanPaymentDecisionNotice(
+          ""
+        );
+
+        setNotice("");
+
+        setActiveView(
+          "finance"
+        );
+
+
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: "smooth",
+        });
+
+
+        return;
+      }
+    }
 
 
     setSimulation(
@@ -1585,6 +3080,27 @@ function App() {
           }
         />
 
+        {activeView ===
+          "business" && (
+          <OperationsStatusPanel
+            simulation={
+              simulation
+            }
+          />
+        )}
+
+{activeView === "business" &&
+  simulation.currentDay === 9 && (
+    <WorkingCapitalCrisisPanel
+      simulation={
+        simulation
+      }
+      onResolve={
+        handleWorkingCapitalDecision
+      }
+    />
+  )}
+
         {simulation
           .recentDelayedConsequences
           .length > 0 && (
@@ -1599,6 +3115,9 @@ function App() {
         {activeView ===
           "business" && (
           <BusinessView
+            handleDistressCapitalDecision={
+              handleDistressCapitalDecision
+            }
             simulation={
               simulation
             }
@@ -1621,6 +3140,66 @@ function App() {
             handleDecision={
               handleDecision
             }
+
+            yearEndDebtTools={{
+              active:
+                yearEndDebtDecisionActive,
+
+              payment:
+                yearEndDebtPayment,
+
+              setPayment:
+                setYearEndDebtPayment,
+
+              cash:
+                yearEndCash,
+
+              debt:
+                yearEndDebt,
+
+              liabilities:
+                yearEndLiabilities,
+
+              monthlyExpenses:
+                yearEndMonthlyExpenses,
+
+              reserveTarget:
+                yearEndReserveTarget,
+
+              maximumPayment:
+                yearEndMaximumPayment,
+
+              maximumSafePayment:
+                yearEndMaximumSafePayment,
+
+              previewPayment:
+                yearEndPreviewPayment,
+
+              cashAfter:
+                yearEndCashAfterPayment,
+
+              debtAfter:
+                yearEndDebtAfterPayment,
+
+              liabilitiesAfter:
+                yearEndLiabilitiesAfterPayment,
+
+              cashCoverAfter:
+                yearEndCashCoverAfter,
+
+              exceedsCash:
+                yearEndPaymentExceedsCash,
+
+              exceedsDebt:
+                yearEndPaymentExceedsDebt,
+
+              belowReserve:
+                yearEndPaymentBelowReserve,
+
+              dangerous:
+                yearEndPaymentDangerous,
+            }}
+
             reflectionReason={
               reflectionReason
             }
@@ -1797,6 +3376,9 @@ function App() {
         {activeView ===
           "finance" && (
           <FinanceView
+            handleDistressCapitalDecision={
+              handleDistressCapitalDecision
+            }
             simulation={
               simulation
             }
@@ -1845,7 +3427,17 @@ function App() {
                     handleExtraLoanPayment={
             handleExtraLoanPayment
           }
-/>
+
+            pendingLoanAdvanceState={
+              pendingLoanAdvanceState
+            }
+            handleLoanPaymentDecision={
+              handleLoanPaymentDecision
+            }
+            loanPaymentDecisionNotice={
+              loanPaymentDecisionNotice
+            }
+          />
         )}
 
         {activeView ===
@@ -2023,6 +3615,25 @@ function Topbar({
   simulation,
   handleReset,
 }) {
+
+
+  const businessYearComplete =
+    Number(
+      simulation?.currentDay ||
+      0
+    ) >
+      MAX_MVP_DAY ||
+    (
+      Number(
+        simulation?.currentDay ||
+        0
+      ) ===
+        MAX_MVP_DAY &&
+      Boolean(
+        simulation?.dayComplete
+      )
+    );
+
   return (
     <header className="topbar">
       <div>
@@ -2047,11 +3658,13 @@ function Topbar({
       <div className="topbar-actions">
         <div className="day-indicator">
           <span>
-            Current stage
+            {businessYearComplete
+              ? "YEAR COMPLETE"
+              : "CURRENT MONTH"}
           </span>
 
           <strong>
-            Day{" "}
+            Month{" "}
             {Math.min(
               simulation.currentDay,
               MAX_MVP_DAY
@@ -2189,6 +3802,1239 @@ function BusinessMetrics({
   );
 }
 
+function WorkingCapitalCrisisPanel({
+  simulation,
+  onResolve,
+}) {
+  const crisis =
+    getWorkingCapitalCrisis(
+      simulation
+    );
+
+
+  const [
+    choice,
+    setChoice,
+  ] =
+    useState("CASH");
+
+
+  const [
+    cashContribution,
+    setCashContribution,
+  ] =
+    useState("30000");
+
+
+  const [
+    localNotice,
+    setLocalNotice,
+  ] =
+    useState("");
+
+
+  if (
+    !crisis.active
+  ) {
+    return null;
+  }
+
+
+  if (
+    crisis.resolved
+  ) {
+    const decision =
+      crisis.existingDecision;
+
+
+    return (
+      <section
+        id="working-capital-crisis"
+        className="working-capital-crisis resolved"
+      >
+        <p className="card-label">
+          WORKING CAPITAL DECISION
+        </p>
+
+        <h2>
+          Funding decision completed
+        </h2>
+
+        <div className="wc-complete-card">
+          <strong>
+            {decision.title}
+          </strong>
+
+          <p>
+            {
+              decision.explanation
+            }
+          </p>
+
+          <div className="wc-complete-grid">
+            <div>
+              <span>
+                Recovery requirement
+              </span>
+
+              <strong>
+                {formatCurrency(
+                  decision.requiredAmount
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Company cash used
+              </span>
+
+              <strong>
+                {formatCurrency(
+                  decision.cashContribution
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                New finance
+              </span>
+
+              <strong>
+                {formatCurrency(
+                  decision.financeAmount
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                New monthly repayment
+              </span>
+
+              <strong>
+                {formatCurrency(
+                  decision.newMonthlyPayment
+                )}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+
+  const preview =
+    previewWorkingCapitalDecision(
+      simulation,
+      choice,
+      cashContribution
+    );
+
+
+  const loanTerms =
+    preview.loanTerms;
+
+
+  return (
+    <section
+      id="working-capital-crisis"
+      className="working-capital-crisis"
+    >
+      <div className="wc-header">
+        <div>
+          <p className="card-label">
+            URGENT MANAGEMENT SITUATION
+          </p>
+
+          <h2>
+            The business needs working capital now
+          </h2>
+
+          <p>
+            A critical operational problem is
+            affecting production and customer
+            delivery. Management needs{" "}
+            <strong>
+              {formatCurrency(
+                crisis.requiredAmount
+              )}
+            </strong>{" "}
+            to restore the operation.
+          </p>
+        </div>
+
+        <div className="wc-required-badge">
+          <span>
+            REQUIRED NOW
+          </span>
+
+          <strong>
+            {formatCurrency(
+              crisis.requiredAmount
+            )}
+          </strong>
+        </div>
+      </div>
+
+
+      <div className="wc-breakdown">
+        {crisis.breakdown.map(
+          (item) => (
+            <article
+              key={item.id}
+            >
+              <span>
+                {item.label}
+              </span>
+
+              <strong>
+                {formatCurrency(
+                  item.amount
+                )}
+              </strong>
+            </article>
+          )
+        )}
+      </div>
+
+
+      <div className="wc-business-position">
+        <div className="wc-section-heading">
+          <div>
+            <span>
+              BEFORE YOU CHOOSE
+            </span>
+
+            <h3>
+              What can the company actually afford?
+            </h3>
+          </div>
+        </div>
+
+        <div className="wc-position-grid">
+          <article>
+            <span>
+              AVAILABLE CASH
+            </span>
+
+            <strong>
+              {formatCurrency(
+                crisis.cash
+              )}
+            </strong>
+          </article>
+
+          <article>
+            <span>
+              MONTHLY EXPENSES
+            </span>
+
+            <strong>
+              {formatCurrency(
+                crisis.monthlyExpenses
+              )}
+            </strong>
+          </article>
+
+          <article>
+            <span>
+              RECOMMENDED RESERVE
+            </span>
+
+            <strong>
+              {formatCurrency(
+                crisis.minimumCashReserve
+              )}
+            </strong>
+
+            <small>
+              1.5 months of expenses
+            </small>
+          </article>
+
+          <article>
+            <span>
+              CASH ABOVE RESERVE
+            </span>
+
+            <strong>
+              {formatCurrency(
+                crisis.cashAboveReserve
+              )}
+            </strong>
+          </article>
+
+          <article>
+            <span>
+              CURRENT DEBT PAYMENTS
+            </span>
+
+            <strong>
+              {formatCurrency(
+                crisis.existingMonthlyDebtService
+              )}
+            </strong>
+
+            <small>
+              per month
+            </small>
+          </article>
+
+          <article>
+            <span>
+              CURRENT BACKLOG
+            </span>
+
+            <strong>
+              {formatCurrency(
+                crisis.operations.backlog
+              )}
+            </strong>
+          </article>
+        </div>
+      </div>
+
+
+      <div className="wc-learning-note">
+        <strong>
+          Management challenge
+        </strong>
+
+        <p>
+          Having enough cash to pay an expense
+          does not automatically mean using all
+          that cash is financially safe. Borrowing
+          can protect liquidity, but creates future
+          repayments and interest.
+        </p>
+      </div>
+
+
+      <div className="wc-choice-grid">
+        <button
+          type="button"
+          className={`wc-choice ${
+            choice === "CASH"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() => {
+            setChoice("CASH");
+            setLocalNotice("");
+          }}
+        >
+          <span className="wc-choice-number">
+            01
+          </span>
+
+          <strong>
+            Use company cash
+          </strong>
+
+          <p>
+            Pay the full recovery cost from
+            available cash and avoid new debt.
+          </p>
+        </button>
+
+
+        <button
+          type="button"
+          className={`wc-choice ${
+            choice ===
+            "SHORT_TERM"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() => {
+            setChoice(
+              "SHORT_TERM"
+            );
+            setLocalNotice("");
+          }}
+        >
+          <span className="wc-choice-number">
+            02
+          </span>
+
+          <strong>
+            Apply for short-term finance
+          </strong>
+
+          <p>
+            Protect today's cash but accept a
+            new six-month repayment commitment.
+          </p>
+        </button>
+
+
+        <button
+          type="button"
+          className={`wc-choice ${
+            choice ===
+            "BLENDED"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() => {
+            setChoice(
+              "BLENDED"
+            );
+            setLocalNotice("");
+          }}
+        >
+          <span className="wc-choice-number">
+            03
+          </span>
+
+          <strong>
+            Use cash + finance
+          </strong>
+
+          <p>
+            Contribute some company cash and
+            borrow the balance.
+          </p>
+        </button>
+
+
+        <button
+          type="button"
+          className={`wc-choice danger ${
+            choice === "DELAY"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() => {
+            setChoice("DELAY");
+            setLocalNotice("");
+          }}
+        >
+          <span className="wc-choice-number">
+            04
+          </span>
+
+          <strong>
+            Delay the recovery
+          </strong>
+
+          <p>
+            Preserve cash and avoid debt now,
+            but leave the operational problem
+            unresolved.
+          </p>
+        </button>
+      </div>
+
+
+      {choice ===
+        "BLENDED" && (
+        <div className="wc-blended-control">
+          <label>
+            How much company cash will you use?
+          </label>
+
+          <div className="wc-money-input">
+            <span>R</span>
+
+            <input
+              type="number"
+              min="5000"
+              max="70000"
+              step="1000"
+              value={
+                cashContribution
+              }
+              onChange={(
+                event
+              ) => {
+                setCashContribution(
+                  event.target
+                    .value
+                );
+
+                setLocalNotice(
+                  ""
+                );
+              }}
+            />
+          </div>
+
+          <div className="wc-presets">
+            {[20000, 30000, 40000, 50000].map(
+              (amount) => (
+                <button
+                  key={amount}
+                  type="button"
+                  onClick={() =>
+                    setCashContribution(
+                      String(
+                        amount
+                      )
+                    )
+                  }
+                >
+                  {formatCurrency(
+                    amount
+                  )}
+                </button>
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+
+      <div className="wc-preview">
+        <p className="card-label">
+          CONSEQUENCE PREVIEW
+        </p>
+
+        {preview.valid ? (
+          <>
+            <div className="wc-preview-grid">
+              <article>
+                <span>
+                  CASH
+                </span>
+
+                <div>
+                  <strong>
+                    {formatCurrency(
+                      crisis.cash
+                    )}
+                  </strong>
+
+                  <b>→</b>
+
+                  <strong>
+                    {formatCurrency(
+                      preview.cashAfter
+                    )}
+                  </strong>
+                </div>
+              </article>
+
+              <article>
+                <span>
+                  COMPANY CASH USED
+                </span>
+
+                <strong>
+                  {formatCurrency(
+                    preview.cashContribution ||
+                      0
+                  )}
+                </strong>
+              </article>
+
+              <article>
+                <span>
+                  NEW FINANCE
+                </span>
+
+                <strong>
+                  {formatCurrency(
+                    preview.financeAmount ||
+                      0
+                  )}
+                </strong>
+              </article>
+
+              <article>
+                <span>
+                  NEW DEBT CREATED
+                </span>
+
+                <strong>
+                  {formatCurrency(
+                    preview.debtAdded ||
+                      0
+                  )}
+                </strong>
+              </article>
+            </div>
+
+
+            {loanTerms && (
+              <div className="wc-loan-offer">
+                <div className="wc-loan-offer-heading">
+                  <div>
+                    <span>
+                      SHORT-TERM FACILITY OFFER
+                    </span>
+
+                    <h3>
+                      Understand the loan before accepting it
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="wc-loan-offer-grid">
+                  <div>
+                    <span>
+                      RECOVERY FUNDING
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        loanTerms.recoveryFunding
+                      )}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      INITIATION FEE
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        loanTerms.initiationFee
+                      )}
+                    </strong>
+
+                    <small>
+                      Added to loan balance
+                    </small>
+                  </div>
+
+                  <div>
+                    <span>
+                      LOAN PRINCIPAL
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        loanTerms.principal
+                      )}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      INTEREST RATE
+                    </span>
+
+                    <strong>
+                      {loanTerms
+                        .annualInterestRate
+                        .toFixed(1)}
+                      %
+                    </strong>
+
+                    <small>
+                      per year
+                    </small>
+                  </div>
+
+                  <div>
+                    <span>
+                      TERM
+                    </span>
+
+                    <strong>
+                      {
+                        loanTerms.termMonths
+                      } months
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      MONTHLY PAYMENT
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        loanTerms.monthlyPayment
+                      )}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      TOTAL INTEREST
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        loanTerms.totalInterest
+                      )}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      TOTAL REPAYABLE
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        loanTerms.totalRepayable
+                      )}
+                    </strong>
+                  </div>
+                </div>
+
+
+                <div className="wc-debt-service-change">
+                  <span>
+                    MONTHLY DEBT COMMITMENT
+                  </span>
+
+                  <div>
+                    <strong>
+                      {formatCurrency(
+                        crisis.existingMonthlyDebtService
+                      )}
+                    </strong>
+
+                    <b>→</b>
+
+                    <strong>
+                      {formatCurrency(
+                        preview.totalMonthlyDebtService
+                      )}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
+            {choice ===
+              "CASH" && (
+              <div
+                className={`wc-cash-warning ${
+                  preview.dangerousLiquidity
+                    ? "danger"
+                    : preview.belowReserve
+                      ? "watch"
+                      : "good"
+                }`}
+              >
+                <strong>
+                  Cash position after payment
+                </strong>
+
+                <p>
+                  The company would retain{" "}
+                  {formatCurrency(
+                    preview.cashAfter
+                  )}{" "}
+                  in cash, equal to approximately{" "}
+                  {preview.cashCoverAfter.toFixed(
+                    1
+                  )}{" "}
+                  months of current operating
+                  expenses.
+                </p>
+              </div>
+            )}
+
+
+            {choice ===
+              "BLENDED" && (
+              <div
+                className={`wc-cash-warning ${
+                  preview.belowReserve
+                    ? "watch"
+                    : "good"
+                }`}
+              >
+                <strong>
+                  Balanced funding effect
+                </strong>
+
+                <p>
+                  The business would retain{" "}
+                  {formatCurrency(
+                    preview.cashAfter
+                  )}{" "}
+                  while creating a short-term
+                  loan of{" "}
+                  {formatCurrency(
+                    preview.debtAdded
+                  )}.
+                </p>
+              </div>
+            )}
+
+
+            {choice ===
+              "DELAY" && (
+              <div className="wc-delay-warning">
+                <strong>
+                  Doing nothing also has a cost
+                </strong>
+
+                <p>
+                  Delaying the recovery is expected
+                  to reduce capacity and delivery
+                  performance, increase backlog,
+                  damage customer satisfaction and
+                  carry an unresolved operational
+                  problem into October.
+                </p>
+              </div>
+            )}
+
+
+            <div className="wc-preview-explanation">
+              {
+                preview.explanation
+              }
+            </div>
+          </>
+        ) : (
+          <div className="wc-preview-error">
+            {
+              preview.reason
+            }
+          </div>
+        )}
+      </div>
+
+
+      {localNotice && (
+        <div className="wc-preview-error">
+          {localNotice}
+        </div>
+      )}
+
+
+      <button
+        type="button"
+        className="primary-button wc-confirm-button"
+        disabled={
+          !preview.valid
+        }
+        onClick={() => {
+          const result =
+            onResolve({
+              choice,
+              cashContribution:
+                Number(
+                  cashContribution
+                ),
+            });
+
+
+          if (
+            result &&
+            !result.applied
+          ) {
+            setLocalNotice(
+              result.reason ||
+                "The decision could not be completed."
+            );
+          }
+        }}
+      >
+        {choice ===
+        "SHORT_TERM"
+          ? "Accept Short-Term Finance & Fund Recovery"
+          : choice ===
+              "BLENDED"
+            ? "Confirm Blended Funding"
+            : choice ===
+                "CASH"
+              ? "Use Company Cash"
+              : "Delay Recovery"}
+      </button>
+
+
+      <p className="wc-lock-note">
+        October will remain locked until management makes this working-capital decision.
+      </p>
+    </section>
+  );
+}
+
+
+function OperationsStatusPanel({
+  simulation,
+}) {
+  const operations = {
+    capacity: 100,
+    equipmentHealth: 100,
+    deliveryPerformance: 100,
+    backlog: 0,
+    ...(simulation.operations || {}),
+  };
+
+  const issues =
+    simulation.businessIssues || [];
+
+  const openIssues =
+    issues.filter(
+      (issue) =>
+        issue.status === "OPEN"
+    );
+
+  const criticalIssues =
+    openIssues.filter(
+      (issue) =>
+        issue.severity ===
+        "CRITICAL"
+    );
+
+  const recentImpacts =
+    simulation.recentIssueImpacts ||
+    [];
+
+  const capacityStatus =
+    operations.capacity >= 90
+      ? {
+          label: "Healthy",
+          tone: "healthy",
+        }
+      : operations.capacity >= 75
+        ? {
+            label: "Under Pressure",
+            tone: "watch",
+          }
+        : operations.capacity >= 60
+          ? {
+              label: "Constrained",
+              tone: "warning",
+            }
+          : {
+              label: "Critical",
+              tone: "critical",
+            };
+
+  const equipmentStatus =
+    operations.equipmentHealth >= 85
+      ? "Good"
+      : operations.equipmentHealth >= 65
+        ? "Needs Attention"
+        : operations.equipmentHealth >= 45
+          ? "Poor"
+          : "Critical";
+
+  const deliveryStatus =
+    operations.deliveryPerformance >= 90
+      ? "On Target"
+      : operations.deliveryPerformance >= 75
+        ? "At Risk"
+        : operations.deliveryPerformance >= 60
+          ? "Behind Target"
+          : "Seriously Behind";
+
+  const lostCapacity =
+    Math.max(
+      0,
+      100 -
+        operations.capacity
+    );
+
+  return (
+    <section className="operations-status-panel">
+      <div className="operations-status-header">
+        <div>
+          <p className="card-label">
+            BUSINESS OPERATIONS
+          </p>
+
+          <h2>
+            Operational Health
+          </h2>
+
+          <p>
+            Your previous decisions and unfinished
+            responsibilities continue affecting the
+            company as the simulation moves forward.
+          </p>
+        </div>
+
+        <div
+          className={`operations-capacity-badge ${capacityStatus.tone}`}
+        >
+          <span>
+            OPERATING CAPACITY
+          </span>
+
+          <strong>
+            {Math.round(
+              operations.capacity
+            )}
+            %
+          </strong>
+
+          <small>
+            {capacityStatus.label}
+          </small>
+        </div>
+      </div>
+
+
+      <div className="operations-metric-grid">
+        <article>
+          <span>
+            OPERATIONAL CAPACITY
+          </span>
+
+          <strong>
+            {Math.round(
+              operations.capacity
+            )}
+            %
+          </strong>
+
+          <small>
+            {lostCapacity > 0
+              ? `${Math.round(
+                  lostCapacity
+                )}% of normal capacity is currently unavailable`
+              : "The business can currently operate at normal capacity"}
+          </small>
+        </article>
+
+        <article>
+          <span>
+            EQUIPMENT HEALTH
+          </span>
+
+          <strong>
+            {Math.round(
+              operations.equipmentHealth
+            )}
+            %
+          </strong>
+
+          <small>
+            {equipmentStatus}
+          </small>
+        </article>
+
+        <article>
+          <span>
+            DELIVERY PERFORMANCE
+          </span>
+
+          <strong>
+            {Math.round(
+              operations.deliveryPerformance
+            )}
+            %
+          </strong>
+
+          <small>
+            {deliveryStatus}
+          </small>
+        </article>
+
+        <article>
+          <span>
+            ORDER / WORK BACKLOG
+          </span>
+
+          <strong>
+            {formatCurrency(
+              operations.backlog
+            )}
+          </strong>
+
+          <small>
+            Work that current capacity has not yet cleared
+          </small>
+        </article>
+      </div>
+
+
+      {operations.capacity < 100 && (
+        <div className="operations-target-warning">
+          <strong>
+            Current targets are affected
+          </strong>
+
+          <p>
+            At approximately{" "}
+            {Math.round(
+              operations.capacity
+            )}
+            % operating capacity, the company cannot
+            reasonably expect the same output that it
+            could produce at 100% capacity unless
+            management adds temporary capacity or
+            resolves the underlying problem.
+          </p>
+        </div>
+      )}
+
+
+      <div className="operations-issues-section">
+        <div className="operations-issues-heading">
+          <div>
+            <span>
+              TRACKED BUSINESS ISSUES
+            </span>
+
+            <strong>
+              {openIssues.length}
+            </strong>
+          </div>
+
+          <small>
+            {criticalIssues.length}
+            {" "}
+            critical
+          </small>
+        </div>
+
+
+        {openIssues.length === 0 ? (
+          <div className="operations-no-issues">
+            <strong>
+              No tracked critical issues are currently open
+            </strong>
+
+            <p>
+              Management has not allowed any tracked
+              operational issue to remain unresolved.
+            </p>
+          </div>
+        ) : (
+          <div className="operations-issue-list">
+            {openIssues.map(
+              (issue) => (
+                <article
+                  key={
+                    issue.id
+                  }
+                  className={`operations-issue-card ${
+                    issue.severity ===
+                    "CRITICAL"
+                      ? "critical"
+                      : ""
+                  }`}
+                >
+                  <div className="operations-issue-top">
+                    <div>
+                      <span>
+                        {issue.type}
+                      </span>
+
+                      <h3>
+                        {issue.title}
+                      </h3>
+                    </div>
+
+                    <div className="operations-issue-age">
+                      <strong>
+                        {
+                          issue.ageMonths ||
+                          0
+                        }
+                      </strong>
+
+                      <span>
+                        MONTH
+                        {Number(
+                          issue.ageMonths ||
+                            0
+                        ) === 1
+                          ? ""
+                          : "S"}{" "}
+                        OPEN
+                      </span>
+                    </div>
+                  </div>
+
+                  <p>
+                    {issue.description}
+                  </p>
+
+
+                  <div className="operations-issue-impact">
+                    <div>
+                      <span>
+                        ACCUMULATED IMPACT
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          issue.totalFinancialImpact ||
+                            0
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        STATUS
+                      </span>
+
+                      <strong>
+                        Unresolved
+                      </strong>
+                    </div>
+                  </div>
+
+
+                  {issue.escalationMessage && (
+                    <div className="operations-issue-message">
+                      <strong>
+                        Why this matters
+                      </strong>
+
+                      <p>
+                        {
+                          issue.escalationMessage
+                        }
+                      </p>
+                    </div>
+                  )}
+
+
+                  <small className="operations-resolution-note">
+                    Resolve this issue by completing the
+                    outstanding business task when it
+                    becomes available.
+                  </small>
+                </article>
+              )
+            )}
+          </div>
+        )}
+      </div>
+
+
+      {recentImpacts.length > 0 && (
+        <div className="operations-month-impact">
+          <span>
+            THIS MONTH'S CARRY-OVER EFFECTS
+          </span>
+
+          {recentImpacts.map(
+            (impact) => (
+              <article
+                key={
+                  impact.issueId
+                }
+              >
+                <strong>
+                  {impact.title}
+                </strong>
+
+                <p>
+                  {impact.message}
+                </p>
+              </article>
+            )
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+
 function BusinessView(props) {
   const {
     simulation,
@@ -2199,6 +5045,7 @@ function BusinessView(props) {
     selectedMessage,
     setSelectedMessage,
     handleDecision,
+    yearEndDebtTools,
     reflectionReason,
     setReflectionReason,
     reflectionConfidence,
@@ -2219,6 +5066,7 @@ function BusinessView(props) {
     selectedRecoveryActionId,
     setSelectedRecoveryActionId,
     handleRecoveryAction,
+    handleDistressCapitalDecision,
     recoveryNotice,
     currentTasks,
     taskSummary,
@@ -2251,6 +5099,124 @@ function BusinessView(props) {
     eventNotice,
     handleReset,
   } = props;
+
+
+  const {
+    active:
+      yearEndDebtDecisionActive = false,
+
+    payment:
+      yearEndDebtPayment = "",
+
+    setPayment:
+      setYearEndDebtPayment =
+        () => {},
+
+    cash:
+      yearEndCash = 0,
+
+    debt:
+      yearEndDebt = 0,
+
+    liabilities:
+      yearEndLiabilities = 0,
+
+    monthlyExpenses:
+      yearEndMonthlyExpenses = 0,
+
+    reserveTarget:
+      yearEndReserveTarget = 0,
+
+    maximumPayment:
+      yearEndMaximumPayment = 0,
+
+    maximumSafePayment:
+      yearEndMaximumSafePayment = 0,
+
+    previewPayment:
+      yearEndPreviewPayment = 0,
+
+    cashAfter:
+      yearEndCashAfterPayment = 0,
+
+    debtAfter:
+      yearEndDebtAfterPayment = 0,
+
+    liabilitiesAfter:
+      yearEndLiabilitiesAfterPayment = 0,
+
+    cashCoverAfter:
+      yearEndCashCoverAfter = 0,
+
+    exceedsCash:
+      yearEndPaymentExceedsCash = false,
+
+    exceedsDebt:
+      yearEndPaymentExceedsDebt = false,
+
+    belowReserve:
+      yearEndPaymentBelowReserve = false,
+
+    dangerous:
+      yearEndPaymentDangerous = false,
+  } =
+    yearEndDebtTools || {};
+
+
+  const reflectionContext =
+    getDecisionReflectionContext({
+      simulation,
+      currentScenario,
+      selectedDecisionId,
+    });
+
+
+  const reflectionDecision =
+    reflectionContext.decision;
+
+
+  const reflectionOptions =
+    reflectionContext.options;
+
+
+  const activeRepaymentLoans =
+    simulation
+      ?.financing
+      ?.loans
+      ?.filter(
+        (loan) =>
+          [
+            "ACTIVE",
+            "DELINQUENT",
+          ].includes(
+            loan.status
+          ) &&
+          Number(
+            loan.outstandingBalance ||
+            0
+          ) > 0
+      ) ||
+    [];
+
+
+  const nextRepaymentLoan =
+    activeRepaymentLoans[0] ||
+    null;
+
+
+  const hasLoanPaymentNextPeriod =
+    Boolean(
+      nextRepaymentLoan
+    );
+
+
+  const nextLoanPaymentAmount =
+    Number(
+      nextRepaymentLoan
+        ?.monthlyPayment ||
+      0
+    );
+
 
   const recoveryTakenToday =
     (simulation.recoveryActions || [])
@@ -2307,6 +5273,12 @@ function BusinessView(props) {
         />
 
         <BusinessIntelligencePanel
+                simulation={
+                  simulation
+                }
+                handleDistressCapitalDecision={
+                  handleDistressCapitalDecision
+                }
           currentDay={
             simulation.currentDay
           }
@@ -2430,6 +5402,9 @@ function BusinessView(props) {
           currentConversation.day ===
             simulation.currentDay && (
           <ConversationCentre
+              simulation={
+                simulation
+              }
             conversation={
               currentConversation
             }
@@ -2629,6 +5604,389 @@ function BusinessView(props) {
                 )}
               </div>
 
+              {yearEndDebtDecisionActive && (
+                <section className="year-end-money-decision">
+                  <div className="year-end-money-header">
+                    <p className="card-label">
+                      USE REAL COMPANY CASH
+                    </p>
+
+                    <h3>
+                      How much debt do you want to repay?
+                    </h3>
+
+                    <p>
+                      This is the company's real cash position.
+                      Choose how much cash you want to use to
+                      reduce debt while considering the money
+                      still needed to operate the business.
+                    </p>
+                  </div>
+
+
+                  <div className="year-end-money-snapshot">
+                    <article>
+                      <span>
+                        AVAILABLE CASH
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          yearEndCash
+                        )}
+                      </strong>
+                    </article>
+
+                    <article>
+                      <span>
+                        OUTSTANDING DEBT
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          yearEndDebt
+                        )}
+                      </strong>
+                    </article>
+
+                    <article>
+                      <span>
+                        MONTHLY EXPENSES
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          yearEndMonthlyExpenses
+                        )}
+                      </strong>
+                    </article>
+
+                    <article>
+                      <span>
+                        RECOMMENDED RESERVE
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          yearEndReserveTarget
+                        )}
+                      </strong>
+
+                      <small>
+                        About 1.5 months of current expenses
+                      </small>
+                    </article>
+                  </div>
+
+
+                  <div className="year-end-money-entry">
+                    <label
+                      htmlFor="year-end-debt-payment"
+                    >
+                      Debt repayment amount
+                    </label>
+
+                    <div className="year-end-money-input-wrap">
+                      <span>R</span>
+
+                      <input
+                        id="year-end-debt-payment"
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={
+                          yearEndDebtPayment
+                        }
+                        onChange={(event) => {
+                          setYearEndDebtPayment(
+                            event.target.value
+                          );
+
+                          setNotice("");
+                        }}
+                        placeholder="Enter amount"
+                      />
+                    </div>
+
+
+                    <div className="year-end-money-presets">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setYearEndDebtPayment(
+                            String(
+                              Math.round(
+                                yearEndMaximumPayment *
+                                  0.25
+                              )
+                            )
+                          );
+
+                          setNotice("");
+                        }}
+                      >
+                        25%
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setYearEndDebtPayment(
+                            String(
+                              Math.round(
+                                yearEndMaximumPayment *
+                                  0.5
+                              )
+                            )
+                          );
+
+                          setNotice("");
+                        }}
+                      >
+                        50%
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setYearEndDebtPayment(
+                            String(
+                              Math.round(
+                                yearEndMaximumSafePayment
+                              )
+                            )
+                          );
+
+                          setNotice("");
+                        }}
+                      >
+                        Maximum Safe
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setYearEndDebtPayment(
+                            String(
+                              Math.round(
+                                yearEndMaximumPayment
+                              )
+                            )
+                          );
+
+                          setNotice("");
+                        }}
+                      >
+                        Maximum Possible
+                      </button>
+                    </div>
+
+
+                    <small className="year-end-safe-note">
+                      Recommended maximum repayment while
+                      preserving the reserve:{" "}
+                      <strong>
+                        {formatCurrency(
+                          yearEndMaximumSafePayment
+                        )}
+                      </strong>
+                    </small>
+                  </div>
+
+
+                  <div className="year-end-money-preview">
+                    <div className="year-end-preview-heading">
+                      <span>
+                        LIVE IMPACT PREVIEW
+                      </span>
+
+                      <small>
+                        Before you confirm
+                      </small>
+                    </div>
+
+                    <div className="year-end-preview-grid">
+                      <article>
+                        <span>CASH</span>
+
+                        <small>Before</small>
+
+                        <strong>
+                          {formatCurrency(
+                            yearEndCash
+                          )}
+                        </strong>
+
+                        <small>After</small>
+
+                        <strong>
+                          {formatCurrency(
+                            yearEndCashAfterPayment
+                          )}
+                        </strong>
+                      </article>
+
+                      <article>
+                        <span>DEBT</span>
+
+                        <small>Before</small>
+
+                        <strong>
+                          {formatCurrency(
+                            yearEndDebt
+                          )}
+                        </strong>
+
+                        <small>After</small>
+
+                        <strong>
+                          {formatCurrency(
+                            yearEndDebtAfterPayment
+                          )}
+                        </strong>
+                      </article>
+
+                      <article>
+                        <span>LIABILITIES</span>
+
+                        <small>Before</small>
+
+                        <strong>
+                          {formatCurrency(
+                            yearEndLiabilities
+                          )}
+                        </strong>
+
+                        <small>After</small>
+
+                        <strong>
+                          {formatCurrency(
+                            yearEndLiabilitiesAfterPayment
+                          )}
+                        </strong>
+                      </article>
+
+                      <article>
+                        <span>CASH COVER</span>
+
+                        <small>
+                          After repayment
+                        </small>
+
+                        <strong>
+                          {yearEndMonthlyExpenses > 0
+                            ? `${yearEndCashCoverAfter.toFixed(
+                                1
+                              )} months`
+                            : "N/A"}
+                        </strong>
+
+                        <small>
+                          Operating breathing room
+                        </small>
+                      </article>
+                    </div>
+                  </div>
+
+
+                  {yearEndPaymentExceedsCash && (
+                    <div className="year-end-money-warning danger">
+                      <strong>
+                        Not enough cash
+                      </strong>
+
+                      <p>
+                        You cannot repay more than the cash
+                        currently available in the company.
+                      </p>
+                    </div>
+                  )}
+
+
+                  {yearEndPaymentExceedsDebt && (
+                    <div className="year-end-money-warning danger">
+                      <strong>
+                        Repayment exceeds the debt balance
+                      </strong>
+
+                      <p>
+                        The company cannot repay more than
+                        it currently owes.
+                      </p>
+                    </div>
+                  )}
+
+
+                  {!yearEndPaymentExceedsCash &&
+                    !yearEndPaymentExceedsDebt &&
+                    yearEndPaymentDangerous && (
+                      <div className="year-end-money-warning danger">
+                        <strong>
+                          Serious liquidity warning
+                        </strong>
+
+                        <p>
+                          This repayment would leave less than
+                          half a month of operating expenses
+                          available in cash.
+                        </p>
+                      </div>
+                    )}
+
+
+                  {!yearEndPaymentExceedsCash &&
+                    !yearEndPaymentExceedsDebt &&
+                    !yearEndPaymentDangerous &&
+                    yearEndPaymentBelowReserve && (
+                      <div className="year-end-money-warning caution">
+                        <strong>
+                          Cash reserves would become tight
+                        </strong>
+
+                        <p>
+                          Debt will fall, but this choice leaves
+                          the company below its recommended
+                          operating reserve.
+                        </p>
+                      </div>
+                    )}
+
+
+                  {yearEndPreviewPayment > 0 &&
+                    !yearEndPaymentBelowReserve &&
+                    !yearEndPaymentExceedsCash &&
+                    !yearEndPaymentExceedsDebt && (
+                      <div className="year-end-money-warning healthy">
+                        <strong>
+                          Reserve remains protected
+                        </strong>
+
+                        <p>
+                          This repayment reduces debt while
+                          preserving the recommended operating
+                          cash reserve.
+                        </p>
+                      </div>
+                    )}
+
+
+                  <div className="year-end-money-lesson">
+                    <strong>
+                      Business lesson
+                    </strong>
+
+                    <p>
+                      Paying debt does not reduce profit like an
+                      operating expense. It uses cash to reduce a
+                      liability. A company can therefore have less
+                      debt but still create a cash-flow problem if
+                      it repays too aggressively.
+                    </p>
+                  </div>
+                </section>
+              )}
+
+
               {notice && (
                 <p className="notice">
                   {notice}
@@ -2653,6 +6011,12 @@ function BusinessView(props) {
               />
 
               <ReflectionPanel
+                decision={
+                  reflectionDecision
+                }
+                options={
+                  reflectionOptions
+                }
                 completed={
                   reflectionCompleted
                 }
@@ -2694,7 +6058,7 @@ function BusinessView(props) {
 
                     <p>
                       Choose one recovery action to help stabilise the business,
-                      then return here to complete your first-half review.
+                      then return here to complete your year-end review.
                     </p>
                   </div>
 
@@ -2727,8 +6091,12 @@ function BusinessView(props) {
                 >
                   {simulation.currentDay ===
                   MAX_MVP_DAY
-                    ? "Review My First Half"
-                    : "Continue Business Journey"}
+                    ? "Review My Year"
+                    : hasLoanPaymentNextPeriod
+                      ? `Continue to Loan Repayment • ${formatCurrency(
+                          nextLoanPaymentAmount
+                        )} due`
+                      : "Continue Business Journey"}
                 </button>
               )}
             </>
@@ -2925,8 +6293,1727 @@ function InboxView({
   );
 }
 
+function LoanPaymentDecisionCentre({
+  state,
+  notice,
+  onResolve,
+}) {
+  const [
+    action,
+    setAction,
+  ] =
+    useState("FULL");
+
+
+  const [
+    partialAmount,
+    setPartialAmount,
+  ] =
+    useState("");
+
+
+  const paymentsDue =
+    getLoanPaymentsDue(
+      state
+    );
+
+
+  const due =
+    paymentsDue[0];
+
+
+  useEffect(
+    () => {
+      setAction("FULL");
+      setPartialAmount("");
+    },
+    [
+      due?.id,
+      state?.currentDay,
+    ]
+  );
+
+
+  if (!due) {
+    return null;
+  }
+
+
+  const preview =
+    getLoanPaymentPreview(
+      state,
+      due.id
+    );
+
+
+  if (!preview) {
+    return null;
+  }
+
+
+  const decisionPreview =
+    previewLoanPaymentDecision(
+      state,
+      due.id,
+      action,
+      action === "PARTIAL"
+        ? partialAmount
+        : 0
+    );
+
+
+  const projectedCash =
+    decisionPreview.valid
+      ? decisionPreview.cashAfter
+      : preview.cash;
+
+
+  const projectedBalance =
+    decisionPreview.valid
+      ? decisionPreview.balanceAfter
+      : preview.balance;
+
+
+  const projectedArrears =
+    decisionPreview.valid
+      ? decisionPreview.arrearsAfter
+      : preview.arrears;
+
+
+  return (
+    <section className="loan-payment-checkpoint">
+      <div className="loan-payment-checkpoint-header">
+        <div>
+          <p className="card-label">
+            MANAGEMENT DECISION REQUIRED
+          </p>
+
+          <h2>
+            Loan payment due before the next business period opens
+          </h2>
+
+          <p>
+            Borrowing created a monthly commitment.
+            Review what the business owes, understand
+            the effect of each option, and decide how
+            management will respond.
+          </p>
+        </div>
+
+        <div className="loan-payment-due-badge">
+          <span>
+            TOTAL DUE
+          </span>
+
+          <strong>
+            {formatCurrency(
+              preview.totalDue
+            )}
+          </strong>
+        </div>
+      </div>
+
+
+      <div className="loan-payment-context-grid">
+        <article>
+          <span>
+            AVAILABLE CASH
+          </span>
+
+          <strong>
+            {formatCurrency(
+              preview.cash
+            )}
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            LOAN BALANCE
+          </span>
+
+          <strong>
+            {formatCurrency(
+              preview.balance
+            )}
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            NORMAL INSTALMENT
+          </span>
+
+          <strong>
+            {formatCurrency(
+              preview.scheduledInstallment
+            )}
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            EXISTING ARREARS
+          </span>
+
+          <strong>
+            {formatCurrency(
+              preview.arrears
+            )}
+          </strong>
+        </article>
+      </div>
+
+
+      <div className="loan-payment-explanation">
+        <div>
+          <span>
+            THIS PERIOD'S INTEREST
+          </span>
+
+          <strong>
+            {formatCurrency(
+              preview.interest
+            )}
+          </strong>
+
+          <small>
+            Cost of borrowing
+          </small>
+        </div>
+
+        <div className="loan-payment-explanation-symbol">
+          +
+        </div>
+
+        <div>
+          <span>
+            THIS PERIOD'S PRINCIPAL
+          </span>
+
+          <strong>
+            {formatCurrency(
+              preview.scheduledPrincipal
+            )}
+          </strong>
+
+          <small>
+            Amount that would reduce the debt
+          </small>
+        </div>
+
+        <div className="loan-payment-explanation-symbol">
+          =
+        </div>
+
+        <div>
+          <span>
+            NORMAL INSTALMENT
+          </span>
+
+          <strong>
+            {formatCurrency(
+              preview.scheduledInstallment
+            )}
+          </strong>
+        </div>
+      </div>
+
+
+      <div className="loan-payment-choice-grid">
+        <button
+          type="button"
+          className={`loan-payment-choice ${
+            action === "FULL"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() =>
+            setAction(
+              "FULL"
+            )
+          }
+        >
+          <strong>
+            Pay full amount
+          </strong>
+
+          <span>
+            Keep the loan up to date and reduce the outstanding principal.
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+          className={`loan-payment-choice ${
+            action === "PARTIAL"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() =>
+            setAction(
+              "PARTIAL"
+            )
+          }
+        >
+          <strong>
+            Make partial payment
+          </strong>
+
+          <span>
+            Protect some cash now, but unpaid amounts become arrears.
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+          className={`loan-payment-choice ${
+            action === "RESTRUCTURE"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() =>
+            setAction(
+              "RESTRUCTURE"
+            )
+          }
+        >
+          <strong>
+            Request restructuring
+          </strong>
+
+          <span>
+            Extend the repayment period to reduce monthly pressure.
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+          className={`loan-payment-choice danger ${
+            action === "MISS"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() =>
+            setAction(
+              "MISS"
+            )
+          }
+        >
+          <strong>
+            Miss this payment
+          </strong>
+
+          <span>
+            Preserve cash today but create arrears and damage the credit record.
+          </span>
+        </button>
+      </div>
+
+
+      {action ===
+        "PARTIAL" && (
+        <div className="loan-partial-payment-entry">
+          <label>
+            Amount the business can pay
+          </label>
+
+          <div className="loan-partial-input">
+            <span>
+              R
+            </span>
+
+            <input
+              type="number"
+              min="0"
+              max={
+                Math.min(
+                  preview.cash,
+                  preview.totalDue
+                )
+              }
+              step="100"
+              value={
+                partialAmount
+              }
+              onChange={(
+                event
+              ) =>
+                setPartialAmount(
+                  event.target
+                    .value
+                )
+              }
+              placeholder="Enter payment amount"
+            />
+          </div>
+
+          <div className="loan-partial-presets">
+            <button
+              type="button"
+              onClick={() =>
+                setPartialAmount(
+                  String(
+                    Math.round(
+                      preview.totalDue *
+                        0.25
+                    )
+                  )
+                )
+              }
+            >
+              25%
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setPartialAmount(
+                  String(
+                    Math.round(
+                      preview.totalDue *
+                        0.5
+                    )
+                  )
+                )
+              }
+            >
+              50%
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setPartialAmount(
+                  String(
+                    Math.min(
+                      preview.cash,
+                      Math.max(
+                        0,
+                        preview.totalDue -
+                          1
+                      )
+                    )
+                  )
+                )
+              }
+            >
+              Maximum available
+            </button>
+          </div>
+        </div>
+      )}
+
+
+      <div className="loan-decision-preview">
+        <p className="card-label">
+          BEFORE YOU CONFIRM
+        </p>
+
+        <div className="loan-decision-preview-grid">
+          <article>
+            <span>
+              CASH
+            </span>
+
+            <div>
+              <strong>
+                {formatCurrency(
+                  preview.cash
+                )}
+              </strong>
+
+              <b>
+                →
+              </b>
+
+              <strong>
+                {formatCurrency(
+                  projectedCash
+                )}
+              </strong>
+            </div>
+          </article>
+
+          <article>
+            <span>
+              LOAN BALANCE
+            </span>
+
+            <div>
+              <strong>
+                {formatCurrency(
+                  preview.balance
+                )}
+              </strong>
+
+              <b>
+                →
+              </b>
+
+              <strong>
+                {formatCurrency(
+                  projectedBalance
+                )}
+              </strong>
+            </div>
+          </article>
+
+          <article>
+            <span>
+              ARREARS
+            </span>
+
+            <div>
+              <strong>
+                {formatCurrency(
+                  preview.arrears
+                )}
+              </strong>
+
+              <b>
+                →
+              </b>
+
+              <strong>
+                {formatCurrency(
+                  projectedArrears
+                )}
+              </strong>
+            </div>
+          </article>
+        </div>
+
+
+        {action ===
+          "RESTRUCTURE" &&
+          decisionPreview.valid && (
+          <div className="loan-restructure-preview">
+            <div>
+              <span>
+                MONTHLY PAYMENT
+              </span>
+
+              <strong>
+                {formatCurrency(
+                  decisionPreview.oldMonthlyPayment
+                )}
+                {" → "}
+                {formatCurrency(
+                  decisionPreview.newMonthlyPayment
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                REMAINING TERM
+              </span>
+
+              <strong>
+                {
+                  decisionPreview.oldRemainingMonths
+                }
+                {" → "}
+                {
+                  decisionPreview.newRemainingMonths
+                } months
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                ESTIMATED EXTRA INTEREST
+              </span>
+
+              <strong>
+                {formatCurrency(
+                  decisionPreview.estimatedAdditionalInterest
+                )}
+              </strong>
+            </div>
+          </div>
+        )}
+
+
+        {action === "MISS" && (
+          <div className="loan-payment-consequence-warning">
+            <strong>
+              Missing the payment does not remove the obligation.
+            </strong>
+
+            <p>
+              The unpaid interest and principal become arrears, the loan becomes delinquent and business risk increases.
+            </p>
+          </div>
+        )}
+
+
+        {decisionPreview.valid ? (
+          <div className="loan-preview-valid">
+            <strong>
+              Review complete
+            </strong>
+
+            <p>
+              The figures above show the immediate financial effect before you commit.
+            </p>
+          </div>
+        ) : (
+          <div className="loan-preview-error">
+            {
+              decisionPreview.reason
+            }
+          </div>
+        )}
+      </div>
+
+
+      {notice && (
+        <div className="loan-preview-error">
+          {notice}
+        </div>
+      )}
+
+
+      <button
+        type="button"
+        className="primary-button loan-confirm-payment-button"
+        disabled={
+          !decisionPreview.valid
+        }
+        onClick={() =>
+          onResolve({
+            loanId:
+              due.id,
+
+            action,
+
+            amount:
+              action ===
+              "PARTIAL"
+                ? partialAmount
+                : 0,
+          })
+        }
+      >
+        Confirm Payment Decision
+      </button>
+
+
+      <p className="loan-payment-lock-note">
+        The next business period will remain locked until this loan obligation has been managed.
+      </p>
+    </section>
+  );
+}
+
+
+function LoanLearningCentre({
+  simulation,
+  portfolio,
+}) {
+  const business =
+    simulation.business || {};
+
+  const loans =
+    portfolio?.loans ||
+    simulation.financing?.loans ||
+    [];
+
+  const activeLoans =
+    loans.filter(
+      (loan) =>
+        loan.status === "active" ||
+        loan.status === "delinquent"
+    );
+
+
+  const buildSchedule = (
+    loan
+  ) => {
+    let balance =
+      Math.max(
+        0,
+        Number(
+          loan.outstandingBalance ||
+            0
+        )
+      );
+
+    const annualRate =
+      Math.max(
+        0,
+        Number(
+          loan.annualInterestRate ||
+            0
+        )
+      );
+
+    const monthlyRate =
+      annualRate /
+      100 /
+      12;
+
+    const monthlyPayment =
+      Math.max(
+        0,
+        Number(
+          loan.monthlyPayment ||
+            0
+        )
+      );
+
+    const rows = [];
+
+    let month = 1;
+
+    while (
+      balance > 0.01 &&
+      month <= 120
+    ) {
+      const interest =
+        balance *
+        monthlyRate;
+
+      const payment =
+        Math.min(
+          monthlyPayment,
+          balance +
+            interest
+        );
+
+      const principal =
+        Math.max(
+          0,
+          payment -
+            interest
+        );
+
+      if (
+        principal <= 0
+      ) {
+        break;
+      }
+
+      const closingBalance =
+        Math.max(
+          0,
+          balance -
+            principal
+        );
+
+      rows.push({
+        month,
+        openingBalance:
+          balance,
+        payment,
+        interest,
+        principal,
+        closingBalance,
+      });
+
+      balance =
+        closingBalance;
+
+      month += 1;
+    }
+
+    return rows;
+  };
+
+
+  if (
+    activeLoans.length === 0
+  ) {
+    return (
+      <section className="loan-learning-centre">
+        <div className="loan-learning-heading">
+          <div>
+            <p className="card-label">
+              LOAN LEARNING CENTRE
+            </p>
+
+            <h2>
+              Understand borrowing before using it
+            </h2>
+
+            <p>
+              When this business takes a loan,
+              the full repayment journey will
+              appear here — including interest,
+              principal, monthly instalments,
+              remaining balance and affordability.
+            </p>
+          </div>
+        </div>
+
+        <div className="loan-learning-empty">
+          <strong>
+            No active business loan
+          </strong>
+
+          <p>
+            Borrowing is not revenue. A loan
+            gives the business cash today in
+            exchange for a future repayment
+            obligation.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+
+  return (
+    <section className="loan-learning-centre">
+      <div className="loan-learning-heading">
+        <div>
+          <p className="card-label">
+            LOAN LEARNING CENTRE
+          </p>
+
+          <h2>
+            See exactly how your debt works
+          </h2>
+
+          <p>
+            Every instalment is separated into
+            interest and principal so you can
+            see where the company's money goes
+            and how the loan balance changes.
+          </p>
+        </div>
+      </div>
+
+
+      <div className="loan-learning-list">
+        {activeLoans.map(
+          (loan) => {
+            const balance =
+              Math.max(
+                0,
+                Number(
+                  loan.outstandingBalance ||
+                    0
+                )
+              );
+
+            const annualRate =
+              Math.max(
+                0,
+                Number(
+                  loan.annualInterestRate ||
+                    0
+                )
+              );
+
+            const monthlyRate =
+              annualRate /
+              100 /
+              12;
+
+            const monthlyPayment =
+              Math.max(
+                0,
+                Number(
+                  loan.monthlyPayment ||
+                    0
+                )
+              );
+
+            const nextInterest =
+              balance *
+              monthlyRate;
+
+            const nextPayment =
+              Math.min(
+                monthlyPayment,
+                balance +
+                  nextInterest
+              );
+
+            const nextPrincipal =
+              Math.max(
+                0,
+                nextPayment -
+                  nextInterest
+              );
+
+            const nextBalance =
+              Math.max(
+                0,
+                balance -
+                  nextPrincipal
+              );
+
+            const payments =
+              loan.payments ||
+              [];
+
+            const paidPayments =
+              payments.filter(
+                (payment) =>
+                  payment.status ===
+                    "paid" ||
+                  payment.type ===
+                    "EXTRA_PAYMENT"
+              );
+
+            const missedPayments =
+              payments.filter(
+                (payment) =>
+                  payment.status ===
+                  "missed"
+              );
+
+            const principalPaid =
+              paidPayments.reduce(
+                (
+                  total,
+                  payment
+                ) =>
+                  total +
+                  Number(
+                    payment.principal ||
+                      0
+                  ),
+                0
+              );
+
+            const interestPaid =
+              paidPayments.reduce(
+                (
+                  total,
+                  payment
+                ) =>
+                  total +
+                  Number(
+                    payment.interest ||
+                      0
+                  ),
+                0
+              );
+
+            const totalPaid =
+              paidPayments.reduce(
+                (
+                  total,
+                  payment
+                ) =>
+                  total +
+                  Number(
+                    payment.amount ||
+                      0
+                  ),
+                0
+              );
+
+            const originalAmount =
+              Math.max(
+                balance +
+                  principalPaid,
+                Number(
+                  loan.originalPrincipal ||
+                    loan.principal ||
+                    loan.approvedAmount ||
+                    0
+                )
+              );
+
+            const schedule =
+              buildSchedule(
+                loan
+              );
+
+            const futureInterest =
+              schedule.reduce(
+                (
+                  total,
+                  row
+                ) =>
+                  total +
+                  row.interest,
+                0
+              );
+
+            const remainingMonths =
+              Number(
+                loan.remainingMonths ||
+                  schedule.length ||
+                  0
+              );
+
+            const cash =
+              Number(
+                business.cash ||
+                  0
+              );
+
+            const expenses =
+              Math.max(
+                0,
+                Number(
+                  business.expenses ||
+                    0
+                )
+              );
+
+            const revenue =
+              Math.max(
+                0,
+                Number(
+                  business.revenue ||
+                    0
+                )
+              );
+
+            const operatingSurplus =
+              revenue -
+              expenses;
+
+            const surplusAfterLoan =
+              operatingSurplus -
+              nextPayment;
+
+            const paymentToSurplus =
+              operatingSurplus > 0
+                ? (
+                    nextPayment /
+                    operatingSurplus
+                  ) *
+                  100
+                : 999;
+
+            let affordability =
+              {
+                label:
+                  "Manageable",
+                tone:
+                  "good",
+                explanation:
+                  "Current operating performance appears able to support the scheduled instalment.",
+              };
+
+            if (
+              operatingSurplus <= 0 ||
+              cash <
+                nextPayment
+            ) {
+              affordability = {
+                label:
+                  "Dangerous",
+                tone:
+                  "danger",
+                explanation:
+                  "Current cash or operating performance may not support the next instalment safely.",
+              };
+            } else if (
+              paymentToSurplus >
+              60
+            ) {
+              affordability = {
+                label:
+                  "Tight",
+                tone:
+                  "watch",
+                explanation:
+                  "The loan consumes a large part of the company's current operating surplus.",
+              };
+            }
+
+
+            return (
+              <article
+                className="loan-account-learning"
+                key={
+                  loan.id
+                }
+              >
+                <div className="loan-account-heading">
+                  <div>
+                    <span>
+                      ACTIVE LOAN ACCOUNT
+                    </span>
+
+                    <h3>
+                      {loan.lender ||
+                        "Business Loan"}
+                    </h3>
+
+                    <p>
+                      Status:{" "}
+                      <strong>
+                        {loan.status ===
+                        "delinquent"
+                          ? "Payment problem"
+                          : "Up to date"}
+                      </strong>
+                    </p>
+                  </div>
+
+                  <div
+                    className={`loan-affordability-badge ${affordability.tone}`}
+                  >
+                    <span>
+                      AFFORDABILITY
+                    </span>
+
+                    <strong>
+                      {
+                        affordability.label
+                      }
+                    </strong>
+                  </div>
+                </div>
+
+
+                <div className="loan-account-grid">
+                  <article>
+                    <span>
+                      ORIGINAL LOAN
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        originalAmount
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <span>
+                      CURRENT BALANCE
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        balance
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <span>
+                      INTEREST RATE
+                    </span>
+
+                    <strong>
+                      {annualRate.toFixed(
+                        1
+                      )}
+                      %
+                    </strong>
+
+                    <small>
+                      Per year
+                    </small>
+                  </article>
+
+                  <article>
+                    <span>
+                      MONTHLY INSTALMENT
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        monthlyPayment
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <span>
+                      REMAINING TERM
+                    </span>
+
+                    <strong>
+                      {remainingMonths}
+                    </strong>
+
+                    <small>
+                      months
+                    </small>
+                  </article>
+
+                  <article>
+                    <span>
+                      FUTURE INTEREST
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        futureInterest
+                      )}
+                    </strong>
+
+                    <small>
+                      Estimate if payments
+                      continue normally
+                    </small>
+                  </article>
+                </div>
+
+
+                <div className="loan-payment-breakdown">
+                  <div className="loan-payment-title">
+                    <div>
+                      <span>
+                        NEXT PAYMENT
+                      </span>
+
+                      <h4>
+                        Where does the instalment go?
+                      </h4>
+                    </div>
+
+                    <strong>
+                      {formatCurrency(
+                        nextPayment
+                      )}
+                    </strong>
+                  </div>
+
+                  <div className="loan-payment-flow">
+                    <article>
+                      <span>
+                        TOTAL PAYMENT
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          nextPayment
+                        )}
+                      </strong>
+                    </article>
+
+                    <div className="loan-flow-arrow">
+                      →
+                    </div>
+
+                    <article>
+                      <span>
+                        INTEREST
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          nextInterest
+                        )}
+                      </strong>
+
+                      <small>
+                        Cost of borrowing
+                      </small>
+                    </article>
+
+                    <div className="loan-flow-plus">
+                      +
+                    </div>
+
+                    <article>
+                      <span>
+                        PRINCIPAL
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          nextPrincipal
+                        )}
+                      </strong>
+
+                      <small>
+                        Reduces the debt
+                      </small>
+                    </article>
+                  </div>
+
+
+                  <div className="loan-balance-preview">
+                    <div>
+                      <span>
+                        BALANCE BEFORE
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          balance
+                        )}
+                      </strong>
+                    </div>
+
+                    <span className="loan-balance-arrow">
+                      →
+                    </span>
+
+                    <div>
+                      <span>
+                        BALANCE AFTER
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          nextBalance
+                        )}
+                      </strong>
+                    </div>
+                  </div>
+
+
+                  <div className="loan-learning-note">
+                    <strong>
+                      Why does the full payment not reduce my debt?
+                    </strong>
+
+                    <p>
+                      Because{" "}
+                      {formatCurrency(
+                        nextInterest
+                      )}{" "}
+                      of the next instalment is
+                      interest — the cost of
+                      borrowing. Only{" "}
+                      {formatCurrency(
+                        nextPrincipal
+                      )}{" "}
+                      reduces the actual amount
+                      owed.
+                    </p>
+                  </div>
+                </div>
+
+
+                <div className="loan-affordability-panel">
+                  <div className="loan-affordability-heading">
+                    <span>
+                      CAN THE BUSINESS AFFORD THIS?
+                    </span>
+
+                    <strong
+                      className={
+                        affordability.tone
+                      }
+                    >
+                      {
+                        affordability.label
+                      }
+                    </strong>
+                  </div>
+
+                  <div className="loan-affordability-grid">
+                    <div>
+                      <span>
+                        Monthly revenue
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          revenue
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Operating expenses
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          expenses
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Operating surplus
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          operatingSurplus
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Loan instalment
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          nextPayment
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Surplus after loan
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          surplusAfterLoan
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        Available cash
+                      </span>
+
+                      <strong>
+                        {formatCurrency(
+                          cash
+                        )}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <p>
+                    {
+                      affordability.explanation
+                    }
+                  </p>
+                </div>
+
+
+                <div className="loan-history-summary">
+                  <article>
+                    <span>
+                      TOTAL PAID SO FAR
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        totalPaid
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <span>
+                      PRINCIPAL PAID
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        principalPaid
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <span>
+                      INTEREST PAID
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        interestPaid
+                      )}
+                    </strong>
+                  </article>
+
+                  <article>
+                    <span>
+                      MISSED PAYMENTS
+                    </span>
+
+                    <strong>
+                      {
+                        missedPayments.length
+                      }
+                    </strong>
+                  </article>
+                </div>
+
+
+                {missedPayments.length >
+                  0 && (
+                  <div className="loan-missed-warning">
+                    <strong>
+                      Payment history needs attention
+                    </strong>
+
+                    <p>
+                      The business has missed{" "}
+                      {
+                        missedPayments.length
+                      }{" "}
+                      scheduled loan payment
+                      {missedPayments.length ===
+                      1
+                        ? ""
+                        : "s"}. This can
+                      damage access to future
+                      funding and indicates
+                      cash-flow pressure.
+                    </p>
+                  </div>
+                )}
+
+
+                <details className="loan-schedule-details">
+                  <summary>
+                    View repayment schedule
+                  </summary>
+
+                  <div className="loan-schedule-explanation">
+                    <strong>
+                      How to read this table
+                    </strong>
+
+                    <p>
+                      Interest is calculated
+                      from the balance still
+                      owed. As the balance
+                      decreases, more of the
+                      instalment usually goes
+                      toward principal.
+                    </p>
+                  </div>
+
+                  <div className="loan-schedule-table-wrap">
+                    <table className="loan-schedule-table">
+                      <thead>
+                        <tr>
+                          <th>
+                            Month
+                          </th>
+
+                          <th>
+                            Opening
+                          </th>
+
+                          <th>
+                            Payment
+                          </th>
+
+                          <th>
+                            Interest
+                          </th>
+
+                          <th>
+                            Principal
+                          </th>
+
+                          <th>
+                            Balance
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {schedule.map(
+                          (row) => (
+                            <tr
+                              key={
+                                row.month
+                              }
+                            >
+                              <td>
+                                {
+                                  row.month
+                                }
+                              </td>
+
+                              <td>
+                                {formatCurrency(
+                                  row.openingBalance
+                                )}
+                              </td>
+
+                              <td>
+                                {formatCurrency(
+                                  row.payment
+                                )}
+                              </td>
+
+                              <td>
+                                {formatCurrency(
+                                  row.interest
+                                )}
+                              </td>
+
+                              <td>
+                                {formatCurrency(
+                                  row.principal
+                                )}
+                              </td>
+
+                              <td>
+                                {formatCurrency(
+                                  row.closingBalance
+                                )}
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              </article>
+            );
+          }
+        )}
+      </div>
+    </section>
+  );
+}
+
+
+function Day2WorkingCapitalContext({
+  simulation,
+}) {
+  const customerInvoice =
+    80000;
+
+  const payrollDue =
+    72000;
+
+  const supplierDue =
+    35000;
+
+  const immediateObligations =
+    payrollDue +
+    supplierDue;
+
+
+  const availableCash =
+    Number(
+      simulation
+        ?.business
+        ?.cash ||
+      0
+    );
+
+
+  const fundingGap =
+    Math.max(
+      0,
+      immediateObligations -
+      availableCash
+    );
+
+
+  return (
+    <section className="day2-working-capital-context">
+      <div className="day2-working-capital-heading">
+        <div>
+          <p className="card-label">
+            WORKING CAPITAL DECISION
+          </p>
+
+          <h2>
+            How much does the business actually need to borrow?
+          </h2>
+
+          <p>
+            The customer has delayed an R80,000 invoice, but the amount owed by the customer is not automatically the amount the company should borrow.
+          </p>
+        </div>
+
+        <div className="day2-gap-badge">
+          <span>
+            ESTIMATED FUNDING GAP
+          </span>
+
+          <strong>
+            {
+              formatCurrency(
+                fundingGap
+              )
+            }
+          </strong>
+        </div>
+      </div>
+
+
+      <div className="day2-working-capital-grid">
+        <article>
+          <span>
+            AVAILABLE CASH
+          </span>
+
+          <strong>
+            {
+              formatCurrency(
+                availableCash
+              )
+            }
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            PAYROLL DUE
+          </span>
+
+          <strong>
+            {
+              formatCurrency(
+                payrollDue
+              )
+            }
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            SUPPLIER DUE
+          </span>
+
+          <strong>
+            {
+              formatCurrency(
+                supplierDue
+              )
+            }
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            IMMEDIATE OBLIGATIONS
+          </span>
+
+          <strong>
+            {
+              formatCurrency(
+                immediateObligations
+              )
+            }
+          </strong>
+        </article>
+      </div>
+
+
+      <div className="day2-working-capital-lesson">
+        <strong>
+          Management question
+        </strong>
+
+        <p>
+          Choose a borrowing amount and repayment period that solve the cash shortage without creating unnecessary future debt repayments.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+
 function FinanceView({
   simulation,
+  handleDistressCapitalDecision,
   financial,
   loanPortfolio,
   loanApplicationOpen,
@@ -2942,6 +8029,9 @@ function FinanceView({
   handleAcceptLoanOffer,
   handleCancelLoanApplication,
   handleExtraLoanPayment,
+  pendingLoanAdvanceState,
+  handleLoanPaymentDecision,
+  loanPaymentDecisionNotice,
 }) {
   const business =
     simulation.business;
@@ -2996,7 +8086,7 @@ function FinanceView({
           </span>
 
           <strong>
-            Day{" "}
+            Month{" "}
             {Math.min(
               simulation.currentDay,
               MAX_MVP_DAY
@@ -3005,6 +8095,51 @@ function FinanceView({
           </strong>
         </div>
       </div>
+
+
+      <DistressCapitalCentre
+        simulation={
+          simulation
+        }
+        onResolve={
+          handleDistressCapitalDecision
+        }
+      />
+
+
+      {pendingLoanAdvanceState && (
+        <LoanPaymentDecisionCentre
+          state={
+            pendingLoanAdvanceState
+          }
+          notice={
+            loanPaymentDecisionNotice
+          }
+          onResolve={
+            handleLoanPaymentDecision
+          }
+        />
+      )}
+
+      <LoanLearningCentre
+        simulation={
+          simulation
+        }
+        portfolio={
+          loanPortfolio
+        }
+      />
+
+      {loanApplicationOpen &&
+        simulation.currentDay === 2 &&
+        loanPurpose ===
+          DAY2_WORKING_CAPITAL_PURPOSE && (
+          <Day2WorkingCapitalContext
+            simulation={
+              simulation
+            }
+          />
+        )}
 
 
       <BusinessCreditLoanCentre
@@ -3558,115 +8693,204 @@ function FinanceRow({
 function ProgressView({
   simulation,
 }) {
+  const progress =
+    getJourneyProgress(
+      simulation
+    );
+
+
+  const stages =
+    progress?.stages ||
+    [];
+
+
   return (
-    <section className="page-panel">
-      <p className="card-label">
-        ENTREPRENEUR JOURNAL
-      </p>
+    <section className="progress-year-page">
+      <div className="progress-year-header">
+        <div>
+          <p className="card-label">
+            ENTREPRENEUR JOURNAL
+          </p>
 
-      <h2>
-        Business Journey & Decision History
-      </h2>
+          <h2>
+            Business Journey & Decision History
+          </h2>
 
-      <p className="progress-intro">
-        Every decision carries forward.
-        Review how your business journey
-        developed stage by stage.
-      </p>
+          <p>
+            Every decision carries forward.
+            Review how your business developed
+            across the full simulated year.
+          </p>
+        </div>
 
-      <div className="journal-list">
-        {[1, 2, 3, 4, 5, 6].map((day) => {
-          const scenario =
-            scenarios.find(
-              (item) =>
-                item.day === day
-            );
 
-          const decision =
-            simulation.decisions.find(
-              (item) =>
-                item.scenarioDay ===
-                day
-            );
+        <div className="progress-year-summary">
+          <span>
+            COMPLETED
+          </span>
 
-          const reflection =
-            simulation.reflections.find(
-              (item) =>
-                item.day === day
-            );
+          <strong>
+            {progress.completed} / {progress.total}
+          </strong>
 
-          return (
-            <article
-              className="journal-entry"
-              key={day}
-            >
-              <div className="journal-day">
-                <span>DAY</span>
-                <strong>
-                  {day}
-                </strong>
-              </div>
+          <small>
+            {progress.percent}% of journey
+          </small>
+        </div>
+      </div>
 
-              <div className="journal-content">
-                <span>
-                  {scenario?.month}
-                </span>
 
-                <h3>
-                  {
-                    scenario?.theme
-                  }
-                </h3>
+      <div className="progress-year-bar">
+        <div
+          style={{
+            width:
+              `${progress.percent}%`,
+          }}
+        />
+      </div>
 
-                {decision ? (
-                  <>
+
+      <div className="progress-year-list">
+        {stages.map(
+          (stage) => {
+            const decision =
+              (
+                simulation.decisions ||
+                []
+              )
+                .slice()
+                .reverse()
+                .find(
+                  (item) =>
+                    Number(
+                      item.day
+                    ) ===
+                    Number(
+                      stage.day
+                    )
+                );
+
+
+            let statusText =
+              "Not completed yet.";
+
+
+            if (
+              stage.isCompleted
+            ) {
+              statusText =
+                decision?.title ||
+                "Month completed.";
+            }
+
+            else if (
+              stage.isCurrent
+            ) {
+              statusText =
+                "Current business month.";
+            }
+
+            else if (
+              !stage.unlocked
+            ) {
+              statusText =
+                stage.hoursUntilUnlock > 0
+                  ? `Opens in approximately ${stage.hoursUntilUnlock} hours.`
+                  : "This month has not opened yet.";
+            }
+
+
+            return (
+              <article
+                key={
+                  stage.day
+                }
+                className={`progress-year-card progress-year-${stage.status}`}
+              >
+                <div className="progress-year-number">
+                  <span>
+                    MONTH
+                  </span>
+
+                  <strong>
+                    {
+                      stage.day
+                    }
+                  </strong>
+                </div>
+
+
+                <div className="progress-year-content">
+                  <div className="progress-year-card-top">
+                    <div>
+                      <span className="progress-year-month">
+                        {
+                          stage.month
+                        }
+                      </span>
+
+                      <h3>
+                        {
+                          stage.title
+                        }
+                      </h3>
+                    </div>
+
+
+                    <span
+                      className={`progress-year-status status-${stage.status}`}
+                    >
+                      {stage.isCompleted
+                        ? "COMPLETED"
+                        : stage.isCurrent
+                          ? "CURRENT"
+                          : stage.unlocked
+                            ? "UPCOMING"
+                            : "LOCKED"}
+                    </span>
+                  </div>
+
+
+                  <p>
+                    {
+                      statusText
+                    }
+                  </p>
+
+
+                  <div className="progress-year-focus">
+                    <span>
+                      BUSINESS FOCUS
+                    </span>
+
                     <strong>
                       {
-                        decision.decisionTitle
+                        stage.focus
                       }
                     </strong>
-
-                    <p>
-                      {
-                        decision.outcomeExplanation
-                      }
-                    </p>
-
-                    {reflection && (
-                      <div className="journal-reflection">
-                        <span>
-                          WHY
-                        </span>
-
-                        <strong>
-                          {
-                            reflection.reason
-                          }
-                        </strong>
-
-                        <p>
-                          Confidence:{" "}
-                          {
-                            reflection.confidence
-                          }
-                          /5
-                        </p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p>
-                    Not completed yet.
-                  </p>
-                )}
-              </div>
-            </article>
-          );
-        })}
+                  </div>
+                </div>
+              </article>
+            );
+          }
+        )}
       </div>
+
+
+      {stages.length !== 12 && (
+        <div className="progress-year-warning">
+          Journey configuration returned
+          {" "}
+          {stages.length}
+          {" "}
+          months instead of 12.
+        </div>
+      )}
     </section>
   );
 }
+
+
 
 function AdvisorView({
   simulation,
@@ -3797,6 +9021,13 @@ function QuarterReview({
   handleReset,
   setActiveView,
 }) {
+
+
+  const finalAssessment =
+    getFinalAssessmentScore(
+      simulation
+    );
+
   const REPLAY_STORAGE_KEY =
     "iims-business-replay-attempts-v1";
 
@@ -3888,9 +9119,8 @@ function QuarterReview({
     simulation.business;
 
   const health =
-    calculateBusinessHealth(
-      business
-    );
+    finalAssessment
+      .businessHealthScore;
 
   const recoveryCount =
     (simulation.recoveryActions || [])
@@ -3915,16 +9145,8 @@ function QuarterReview({
     );
 
   const capabilityScore =
-    skillValues.length > 0
-      ? Math.round(
-          skillValues.reduce(
-            (sum, value) =>
-              sum + value,
-            0
-          ) /
-            skillValues.length
-        )
-      : 50;
+    finalAssessment
+      .capabilityScore;
 
   /*
    * The learning score is deliberately different
@@ -3934,60 +9156,28 @@ function QuarterReview({
    * 30% = final business health
    */
   const simulationScore =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        Math.round(
-          capabilityScore * 0.7 +
-          health * 0.3
-        )
-      )
-    );
+    finalAssessment
+      .overallScore;
 
-  const passMark = 60;
+  const passMark =
+    finalAssessment
+      .passMark;
 
   const passed =
-    simulationScore >=
-    passMark;
+    finalAssessment
+      .passed;
 
-  let scoreBand =
-    "Needs More Practice";
+  const scoreBand =
+    finalAssessment.band;
 
-  let scoreMessage =
-    "You completed the journey and now have clear areas to strengthen before trying another business strategy.";
 
-  if (simulationScore >= 80) {
-    scoreBand =
-      "Excellent";
+  const scoreMessage =
+    finalAssessment.message;
 
-    scoreMessage =
-      "You demonstrated strong business judgement across the simulation and managed several competing business pressures well.";
-  } else if (
-    simulationScore >= 70
-  ) {
-    scoreBand =
-      "Very Good";
 
-    scoreMessage =
-      "You demonstrated a good understanding of business decision-making and showed strong potential across the journey.";
-  } else if (
-    simulationScore >= 60
-  ) {
-    scoreBand =
-      "Pass";
-
-    scoreMessage =
-      "You demonstrated a sound understanding of the key business decisions covered in this simulation.";
-  } else if (
-    simulationScore >= 50
-  ) {
-    scoreBand =
-      "Developing";
-
-    scoreMessage =
-      "You completed the journey successfully, but some business skills still need more practice and guidance.";
-  }
+  const managementDisciplineScore =
+    finalAssessment
+      .managementDisciplineScore;
 
 
   if (!showDetailedResults) {
@@ -4009,7 +9199,7 @@ function QuarterReview({
           </h1>
 
           <p className="completion-result-intro">
-            You managed six simulated business months involving
+            You managed twelve simulated business months involving
             growth, cash flow, employees, customers, funding,
             pricing and business risk.
           </p>
@@ -4099,6 +9289,21 @@ function QuarterReview({
               Skills demonstrated during decisions
             </small>
           </article>
+
+
+          <article>
+            <span>
+              Management Discipline
+            </span>
+
+            <strong>
+              {managementDisciplineScore}%
+            </strong>
+
+            <small>
+              How consistently you managed obligations and operational pressure
+            </small>
+          </article>
         </div>
 
 
@@ -4108,11 +9313,13 @@ function QuarterReview({
           </strong>
 
           <p>
-            Your simulation score measures what you demonstrated
-            as an entrepreneur. Business Health measures the condition
-            of the company you created through your decisions.
-            A capable entrepreneur can still make risky decisions
-            that place a business under pressure.
+            Your final score measures performance, not simple completion.
+            Entrepreneur Capability reflects the business skills demonstrated
+            through your decisions. Business Health measures the condition
+            of the company you created. Management Discipline measures how
+            consistently you handled obligations, debt, operational issues
+            and critical management responsibilities. Completing all twelve
+            months does not guarantee a pass.
           </p>
         </div>
 
@@ -4132,7 +9339,7 @@ function QuarterReview({
             });
           }}
         >
-          View My Business Results
+          Open Year-End Business Results
         </button>
       </section>
     );
@@ -4161,7 +9368,7 @@ function QuarterReview({
       <div className="review-header">
         <div>
           <p className="card-label">
-            FIRST HALF BUSINESS REVIEW
+            YEAR-END BUSINESS REVIEW
           </p>
 
           <h2>
@@ -4169,10 +9376,9 @@ function QuarterReview({
           </h2>
 
           <p>
-            Six simulated business
-            months are complete.
-            Review what your decisions
-            did to the company.
+            The simulated business year is complete.
+            Review the financial, operational and management
+            position created by your decisions.
           </p>
         </div>
 
@@ -5341,6 +10547,8 @@ function OutcomePanel({
 }
 
 function ReflectionPanel({
+  decision,
+  options = [],
   completed,
   reason,
   setReason,
@@ -5369,6 +10577,26 @@ function ReflectionPanel({
         decision?
       </h3>
 
+      {decision && (
+        <div className="reflection-decision-context">
+          <span>
+            YOU CHOSE
+          </span>
+
+          <strong>
+            {
+              decision.title ||
+              decision.description
+            }
+          </strong>
+
+          <p>
+            Why did you make this specific decision?
+          </p>
+        </div>
+      )}
+
+
       <select
         value={reason}
         onChange={(event) =>
@@ -5381,13 +10609,17 @@ function ReflectionPanel({
           Choose a reason
         </option>
 
-        {reflectionReasons.map(
+        {options.map(
           (item) => (
             <option
-              key={item}
-              value={item}
+              key={
+                item.value
+              }
+              value={
+                item.label
+              }
             >
-              {item}
+              {item.label}
             </option>
           )
         )}
@@ -5636,6 +10868,8 @@ function SummaryCard({
 // =========================================================
 
 function BusinessIntelligencePanel({
+  simulation,
+  handleDistressCapitalDecision,
   currentDay,
   alerts,
   objectives,
@@ -5652,38 +10886,62 @@ function BusinessIntelligencePanel({
   const primaryAlert =
     alerts[0];
 
+
+  const structuralDistress =
+    getDistressCapitalState(
+      simulation
+    );
+
   return (
     <section className="business-intelligence">
       {currentDay >= 4 &&
-        recoveryState.level !==
-          "normal" && (
-        <RecoveryDecisionCentre
-          recoveryState={
-            recoveryState
-          }
-          recoveryActions={
-            recoveryActions
-          }
-          selectedRecoveryActionId={
-            selectedRecoveryActionId
-          }
-          setSelectedRecoveryActionId={
-            setSelectedRecoveryActionId
-          }
-          handleRecoveryAction={
-            handleRecoveryAction
-          }
-          recoveryNotice={
-            recoveryNotice
-          }
-          recoveryHistory={
-            recoveryHistory
-          }
-          lastRecoveryOutcome={
-            lastRecoveryOutcome
-          }
-        />
-      )}
+        (
+          recoveryState.level !==
+            "normal" ||
+          structuralDistress.active ||
+          structuralDistress.resolvedThisPeriod
+        ) && (
+          <>
+            <DistressCapitalCentre
+              simulation={
+                simulation
+              }
+              onResolve={
+                handleDistressCapitalDecision
+              }
+            />
+
+            <RecoveryDecisionCentre
+              simulation={
+                simulation
+              }
+              recoveryState={
+                recoveryState
+              }
+              recoveryActions={
+                recoveryActions
+              }
+              selectedRecoveryActionId={
+                selectedRecoveryActionId
+              }
+              setSelectedRecoveryActionId={
+                setSelectedRecoveryActionId
+              }
+              handleRecoveryAction={
+                handleRecoveryAction
+              }
+              recoveryNotice={
+                recoveryNotice
+              }
+              recoveryHistory={
+                recoveryHistory
+              }
+              lastRecoveryOutcome={
+                lastRecoveryOutcome
+              }
+            />
+          </>
+        )}
 
       <div className="intelligence-grid">
         <article className="business-alert-card">
@@ -5903,7 +11161,1362 @@ function BusinessIntelligencePanel({
 }
 
 
+
+function DistressCapitalCentre({
+  simulation,
+  onResolve,
+}) {
+  const distress =
+    getDistressCapitalState(
+      simulation
+    );
+
+
+  const currentDecision =
+    simulation
+      ?.distressCapital;
+
+
+  const decisionToday =
+    Boolean(
+      currentDecision
+        ?.resolved
+    ) &&
+    Number(
+      currentDecision
+        ?.resolvedDay
+    ) ===
+    Number(
+      simulation?.currentDay
+    );
+
+
+  const baseOffer =
+    distress.offers.find(
+      (offer) =>
+        offer.id ===
+        "minority-rescue"
+    ) ||
+    distress.offers.find(
+      (offer) =>
+        offer.type !==
+        "NO_RESCUE"
+    ) ||
+    null;
+
+
+  const restructureOffer =
+    distress.offers.find(
+      (offer) =>
+        offer.id ===
+        "structured-rescue"
+    ) ||
+    null;
+
+
+  const [
+    meetingOpen,
+    setMeetingOpen,
+  ] = useState(
+    Boolean(
+      distress.active &&
+      distress.investorAvailable
+    )
+  );
+
+
+  const [
+    phase,
+    setPhase,
+  ] = useState(
+    "NEGOTIATE"
+  );
+
+
+  const [
+    currentDeal,
+    setCurrentDeal,
+  ] = useState(
+    baseOffer
+  );
+
+
+  const [
+    localNotice,
+    setLocalNotice,
+  ] = useState("");
+
+
+  const [
+    messages,
+    setMessages,
+  ] = useState(() => {
+    if (
+      !distress.active ||
+      !baseOffer
+    ) {
+      return [];
+    }
+
+
+    const metrics =
+      distress.metrics;
+
+
+    return [
+      {
+        id:
+          "investor-opening",
+
+        speaker:
+          "investor",
+
+        name:
+          baseOffer.investor,
+
+        text:
+          `I have reviewed the company. You currently have ${formatCurrency(
+            metrics.debt
+          )} in debt, ${formatCurrency(
+            metrics.cash
+          )} in cash and approximately ${formatCurrency(
+            metrics.monthlyDebtService
+          )} in monthly debt repayments. The business is under serious pressure, but we believe there is still value worth rescuing.`,
+      },
+
+      {
+        id:
+          "investor-proposal",
+
+        speaker:
+          "investor",
+
+        name:
+          baseOffer.investor,
+
+        text:
+          `We are prepared to inject ${formatCurrency(
+            baseOffer.investmentAmount
+          )}. Approximately ${formatCurrency(
+            baseOffer.actualDebtPaydown
+          )} would reduce debt and ${formatCurrency(
+            baseOffer.workingCapital
+          )} would remain as working capital. In return, we want ${
+            baseOffer.equitySold
+          }% of the company. ${baseOffer.governance}`,
+      },
+    ];
+  });
+
+
+  if (
+    !distress.active &&
+    !decisionToday
+  ) {
+    return null;
+  }
+
+
+  if (
+    decisionToday
+  ) {
+    return (
+      <section className="investor-meeting-resolved">
+        <div className="investor-meeting-resolved-mark">
+          ✓
+        </div>
+
+        <div>
+          <p className="card-label">
+            INVESTOR MEETING CONCLUDED
+          </p>
+
+          <h3>
+            {
+              currentDecision.title
+            }
+          </h3>
+
+          <p>
+            {
+              currentDecision.outcome
+            }
+          </p>
+
+          <div className="investor-resolved-numbers">
+            <span>
+              Founder ownership{" "}
+              <strong>
+                {
+                  Number(
+                    currentDecision
+                      .founderOwnershipAfter ??
+                    simulation
+                      ?.business
+                      ?.founderOwnership ??
+                    100
+                  ).toFixed(1)
+                }%
+              </strong>
+            </span>
+
+            <span>
+              Capital received{" "}
+              <strong>
+                {
+                  formatCurrency(
+                    currentDecision
+                      .investmentAmount ||
+                    0
+                  )
+                }
+              </strong>
+            </span>
+
+            <span>
+              Debt repaid{" "}
+              <strong>
+                {
+                  formatCurrency(
+                    currentDecision
+                      .debtPaydown ||
+                    0
+                  )
+                }
+              </strong>
+            </span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+
+  if (
+    !distress.investorAvailable ||
+    !baseOffer
+  ) {
+    return (
+      <section className="investor-no-offer">
+        <p className="card-label">
+          CAPITAL MARKET RESPONSE
+        </p>
+
+        <h3>
+          No rescue investor is currently willing to make an offer.
+        </h3>
+
+        <p>
+          The company's financial position has deteriorated beyond the point
+          where an investor is prepared to provide rescue capital on the
+          current information.
+        </p>
+      </section>
+    );
+  }
+
+
+  const dealPreview =
+    currentDeal
+      ? previewNegotiatedDistressDeal(
+          simulation,
+          currentDeal
+        )
+      : null;
+
+
+  const appendMessages = (
+    additions
+  ) => {
+    setMessages(
+      (previous) => [
+        ...previous,
+        ...additions,
+      ]
+    );
+  };
+
+
+  const protectOwnership = () => {
+    const improvedEquity =
+      Math.max(
+        20,
+        Number(
+          baseOffer.equitySold
+        ) - 5
+      );
+
+
+    const deal = {
+      ...baseOffer,
+
+      id:
+        "negotiated-protect-ownership",
+
+      title:
+        "Negotiated minority rescue investment",
+
+      equitySold:
+        improvedEquity,
+
+      governance:
+        "The investor receives one board seat and approval rights over major new borrowing.",
+    };
+
+
+    setCurrentDeal(
+      deal
+    );
+
+
+    appendMessages([
+      {
+        id:
+          `entrepreneur-${Date.now()}`,
+
+        speaker:
+          "entrepreneur",
+
+        name:
+          "You",
+
+        strategy:
+          "PROTECT OWNERSHIP",
+
+        text:
+          `I understand the risk you are taking, but ${
+            baseOffer.equitySold
+          }% is too much ownership to give away. I need the capital, but I also need to preserve a meaningful founder position.`,
+      },
+
+      {
+        id:
+          `investor-${Date.now() + 1}`,
+
+        speaker:
+          "investor",
+
+        name:
+          baseOffer.investor,
+
+        text:
+          `I cannot price this like a healthy company. However, I can reduce our equity requirement to ${improvedEquity}%. The capital amount stays at ${formatCurrency(
+            baseOffer.investmentAmount
+          )}, but we will require a board seat and approval rights over major future borrowing.`,
+      },
+    ]);
+
+
+    setPhase(
+      "COUNTER"
+    );
+
+    setLocalNotice("");
+  };
+
+
+  const demandMoreCapital = () => {
+    const investment =
+      Number(
+        baseOffer.investmentAmount
+      ) +
+      70000;
+
+
+    const equity =
+      Math.min(
+        49,
+        Number(
+          baseOffer.equitySold
+        ) + 5
+      );
+
+
+    const debtPaydown =
+      Math.min(
+        Number(
+          distress.metrics.debt
+        ),
+        Number(
+          baseOffer.debtPaydown
+        ) +
+        35000
+      );
+
+
+    const deal = {
+      ...baseOffer,
+
+      id:
+        "negotiated-more-capital",
+
+      title:
+        "Expanded rescue investment",
+
+      investmentAmount:
+        investment,
+
+      debtPaydown,
+
+      equitySold:
+        equity,
+
+      governance:
+        "The investor receives one board seat, quarterly financial reporting rights and approval rights over major new borrowing.",
+    };
+
+
+    setCurrentDeal(
+      deal
+    );
+
+
+    appendMessages([
+      {
+        id:
+          `entrepreneur-${Date.now()}`,
+
+        speaker:
+          "entrepreneur",
+
+        name:
+          "You",
+
+        strategy:
+          "DEMAND ENOUGH CAPITAL",
+
+        text:
+          `If I am going to dilute my ownership, I do not want a rescue that leaves the company short of cash again in two months. I need enough capital to reduce more debt and still fund operations.`,
+      },
+
+      {
+        id:
+          `investor-${Date.now() + 1}`,
+
+        speaker:
+          "investor",
+
+        name:
+          baseOffer.investor,
+
+        text:
+          `That is commercially reasonable. We can increase the investment to ${formatCurrency(
+            investment
+          )} and direct approximately ${formatCurrency(
+            debtPaydown
+          )} toward debt. But the larger commitment increases our required stake to ${equity}%.`,
+      },
+    ]);
+
+
+    setPhase(
+      "COUNTER"
+    );
+
+    setLocalNotice("");
+  };
+
+
+  const proposeRestructure = () => {
+    const source =
+      restructureOffer ||
+      baseOffer;
+
+
+    const deal = {
+      ...source,
+
+      id:
+        "negotiated-restructure",
+
+      investor:
+        baseOffer.investor,
+
+      title:
+        "Rescue investment with lender restructuring",
+
+      restructure:
+        true,
+
+      equitySold:
+        Math.min(
+          35,
+          Number(
+            source.equitySold ||
+            30
+          )
+        ),
+
+      governance:
+        "The investor receives a board observer seat. Existing lenders extend the remaining repayment terms by 12 months.",
+    };
+
+
+    setCurrentDeal(
+      deal
+    );
+
+
+    appendMessages([
+      {
+        id:
+          `entrepreneur-${Date.now()}`,
+
+        speaker:
+          "entrepreneur",
+
+        name:
+          "You",
+
+        strategy:
+          "RESTRUCTURE DEBT",
+
+        text:
+          "Instead of using most of the investment to repay debt immediately, can part of the capital stabilise operations while the remaining lenders extend their repayment terms?",
+      },
+
+      {
+        id:
+          `investor-${Date.now() + 1}`,
+
+        speaker:
+          "investor",
+
+        name:
+          baseOffer.investor,
+
+        text:
+          `Yes. We can structure the rescue around ${formatCurrency(
+            deal.investmentAmount
+          )} of equity capital for ${deal.equitySold}% ownership, provided the lenders extend the remaining loan terms. That reduces immediate repayment pressure but keeps debt on the balance sheet for longer.`,
+      },
+    ]);
+
+
+    setPhase(
+      "COUNTER"
+    );
+
+    setLocalNotice("");
+  };
+
+
+  const beginReject = () => {
+    appendMessages([
+      {
+        id:
+          `entrepreneur-${Date.now()}`,
+
+        speaker:
+          "entrepreneur",
+
+        name:
+          "You",
+
+        strategy:
+          "REJECT DILUTION",
+
+        text:
+          "I am not prepared to sell part of the company under these terms.",
+      },
+
+      {
+        id:
+          `investor-${Date.now() + 1}`,
+
+        speaker:
+          "investor",
+
+        name:
+          baseOffer.investor,
+
+        text:
+          "That is your decision. But without new equity, the company will still have the same liquidity shortage, operating losses and debt-service pressure. We will withdraw the proposal if you walk away.",
+      },
+    ]);
+
+
+    setPhase(
+      "REJECT_CONFIRM"
+    );
+
+    setLocalNotice("");
+  };
+
+
+  const pushOneMoreTime = () => {
+    if (!currentDeal) {
+      return;
+    }
+
+
+    const reducedInvestment =
+      Math.max(
+        100000,
+        Number(
+          currentDeal.investmentAmount
+        ) -
+        20000
+      );
+
+
+    const improvedEquity =
+      Math.max(
+        20,
+        Number(
+          currentDeal.equitySold
+        ) -
+        2
+      );
+
+
+    const adjustedPaydown =
+      Math.min(
+        Number(
+          currentDeal.debtPaydown
+        ),
+        Math.max(
+          0,
+          reducedInvestment -
+          30000
+        )
+      );
+
+
+    const deal = {
+      ...currentDeal,
+
+      id:
+        "negotiated-final-counter",
+
+      investmentAmount:
+        reducedInvestment,
+
+      debtPaydown:
+        adjustedPaydown,
+
+      equitySold:
+        improvedEquity,
+
+      governance:
+        `${currentDeal.governance} These are the investor's final terms.`,
+    };
+
+
+    setCurrentDeal(
+      deal
+    );
+
+
+    appendMessages([
+      {
+        id:
+          `entrepreneur-${Date.now()}`,
+
+        speaker:
+          "entrepreneur",
+
+        name:
+          "You",
+
+        strategy:
+          "FINAL COUNTER",
+
+        text:
+          "I am willing to close the transaction today, but I need a little more ownership retained by the founder.",
+      },
+
+      {
+        id:
+          `investor-${Date.now() + 1}`,
+
+        speaker:
+          "investor",
+
+        name:
+          baseOffer.investor,
+
+        text:
+          `Final offer: we reduce our ownership requirement to ${improvedEquity}%, but our cash commitment falls to ${formatCurrency(
+            reducedInvestment
+          )}. We will not renegotiate again.`,
+      },
+    ]);
+
+
+    setPhase(
+      "FINAL"
+    );
+  };
+
+
+  const acceptDeal = () => {
+    if (!currentDeal) {
+      setLocalNotice(
+        "There is no negotiated deal to accept."
+      );
+
+      return;
+    }
+
+
+    const result =
+      onResolve(
+        currentDeal
+      );
+
+
+    if (
+      result &&
+      !result.applied
+    ) {
+      setLocalNotice(
+        result.reason ||
+        "The investor transaction could not be completed."
+      );
+
+      return;
+    }
+
+
+    setMeetingOpen(
+      false
+    );
+  };
+
+
+  const walkAway = () => {
+    const result =
+      onResolve(
+        "reject-rescue"
+      );
+
+
+    if (
+      result &&
+      !result.applied
+    ) {
+      setLocalNotice(
+        result.reason ||
+        "The decision could not be recorded."
+      );
+
+      return;
+    }
+
+
+    setMeetingOpen(
+      false
+    );
+  };
+
+
+  return (
+    <>
+      <section className="investor-incoming-card">
+        <div className="investor-incoming-icon">
+          I
+        </div>
+
+        <div className="investor-incoming-copy">
+          <p className="card-label">
+            INCOMING INVESTOR MEETING
+          </p>
+
+          <h3>
+            {
+              baseOffer.investor
+            } wants to discuss a rescue investment
+          </h3>
+
+          <p>
+            The investor has reviewed the company's debt,
+            cash position, operating losses and missed repayments.
+            This is an equity negotiation — not another loan.
+          </p>
+
+          <div className="investor-incoming-stakes">
+            <span>
+              Debt{" "}
+              <strong>
+                {
+                  formatCurrency(
+                    distress.metrics.debt
+                  )
+                }
+              </strong>
+            </span>
+
+            <span>
+              Cash{" "}
+              <strong>
+                {
+                  formatCurrency(
+                    distress.metrics.cash
+                  )
+                }
+              </strong>
+            </span>
+
+            <span>
+              Monthly debt service{" "}
+              <strong>
+                {
+                  formatCurrency(
+                    distress.metrics
+                      .monthlyDebtService
+                  )
+                }
+              </strong>
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="investor-enter-meeting"
+          onClick={() =>
+            setMeetingOpen(
+              true
+            )
+          }
+        >
+          Enter Investor Meeting
+        </button>
+      </section>
+
+
+      {meetingOpen && (
+        <div className="investor-meeting-overlay">
+          <section className="investor-meeting-modal">
+            <header className="investor-meeting-header">
+              <div>
+                <p className="card-label">
+                  URGENT INVESTMENT NEGOTIATION
+                </p>
+
+                <h2>
+                  Rescue Capital Meeting
+                </h2>
+
+                <p>
+                  {
+                    baseOffer.investor
+                  }
+                  {" • "}
+                  Structural financial distress
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="investor-meeting-close"
+                onClick={() =>
+                  setMeetingOpen(
+                    false
+                  )
+                }
+                aria-label="Close investor meeting"
+              >
+                ×
+              </button>
+            </header>
+
+
+            <div className="investor-meeting-body">
+              <div className="investor-conversation-column">
+                <div className="investor-conversation-status">
+                  <span>
+                    LIVE NEGOTIATION
+                  </span>
+
+                  <strong>
+                    Founder ownership is on the table
+                  </strong>
+                </div>
+
+
+                <div className="investor-message-stream">
+                  {messages.map(
+                    (message) => (
+                      <article
+                        key={
+                          message.id
+                        }
+                        className={`investor-message ${
+                          message.speaker ===
+                          "entrepreneur"
+                            ? "entrepreneur"
+                            : "investor"
+                        }`}
+                      >
+                        <div className="investor-message-name">
+                          <strong>
+                            {
+                              message.name
+                            }
+                          </strong>
+
+                          {message.strategy && (
+                            <span>
+                              {
+                                message.strategy
+                              }
+                            </span>
+                          )}
+                        </div>
+
+                        <p>
+                          {
+                            message.text
+                          }
+                        </p>
+                      </article>
+                    )
+                  )}
+                </div>
+
+
+                {phase ===
+                  "NEGOTIATE" && (
+                  <div className="investor-response-area">
+                    <span>
+                      HOW DO YOU RESPOND?
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={
+                        protectOwnership
+                      }
+                    >
+                      <strong>
+                        Protect ownership
+                      </strong>
+
+                      <p>
+                        Push back on the equity percentage while trying to keep the investment amount.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={
+                        demandMoreCapital
+                      }
+                    >
+                      <strong>
+                        Demand enough capital to genuinely stabilise the business
+                      </strong>
+
+                      <p>
+                        Accept greater dilution only if the investor commits more money.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={
+                        proposeRestructure
+                      }
+                    >
+                      <strong>
+                        Propose debt restructuring
+                      </strong>
+
+                      <p>
+                        Use equity capital together with longer lender repayment terms.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={
+                        beginReject
+                      }
+                    >
+                      <strong>
+                        Refuse to sell equity
+                      </strong>
+
+                      <p>
+                        Keep ownership, but leave the current financial pressure unresolved.
+                      </p>
+                    </button>
+                  </div>
+                )}
+
+
+                {phase ===
+                  "COUNTER" && (
+                  <div className="investor-response-area">
+                    <span>
+                      THE INVESTOR HAS COUNTERED
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={
+                        acceptDeal
+                      }
+                    >
+                      <strong>
+                        Accept the negotiated terms
+                      </strong>
+
+                      <p>
+                        Close the transaction and recapitalise the company.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={
+                        pushOneMoreTime
+                      }
+                    >
+                      <strong>
+                        Push once more for more founder ownership
+                      </strong>
+
+                      <p>
+                        The investor may improve ownership terms, but reduce the amount of capital committed.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={
+                        beginReject
+                      }
+                    >
+                      <strong>
+                        Walk away from the current counteroffer
+                      </strong>
+
+                      <p>
+                        Keep your ownership and carry the financial distress yourself.
+                      </p>
+                    </button>
+                  </div>
+                )}
+
+
+                {phase ===
+                  "FINAL" && (
+                  <div className="investor-response-area final">
+                    <span>
+                      FINAL OFFER
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={
+                        acceptDeal
+                      }
+                    >
+                      <strong>
+                        Sign the rescue investment
+                      </strong>
+
+                      <p>
+                        Accept the investor's final capital, ownership and governance terms.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={
+                        beginReject
+                      }
+                    >
+                      <strong>
+                        Reject the final offer
+                      </strong>
+
+                      <p>
+                        End negotiations without new capital.
+                      </p>
+                    </button>
+                  </div>
+                )}
+
+
+                {phase ===
+                  "REJECT_CONFIRM" && (
+                  <div className="investor-response-area final">
+                    <span>
+                      THE INVESTOR IS READY TO WALK AWAY
+                    </span>
+
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={
+                        walkAway
+                      }
+                    >
+                      <strong>
+                        End the meeting without investment
+                      </strong>
+
+                      <p>
+                        Founder ownership remains unchanged, but the financial crisis remains.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPhase(
+                          "NEGOTIATE"
+                        );
+
+                        appendMessages([
+                          {
+                            id:
+                              `entrepreneur-${Date.now()}`,
+
+                            speaker:
+                              "entrepreneur",
+
+                            name:
+                              "You",
+
+                            text:
+                              "Before we end the meeting, I want to reconsider the structure.",
+                          },
+                        ]);
+                      }}
+                    >
+                      <strong>
+                        Return to the negotiation
+                      </strong>
+
+                      <p>
+                        Reconsider the rescue before the investor leaves.
+                      </p>
+                    </button>
+                  </div>
+                )}
+
+
+                {localNotice && (
+                  <p className="notice">
+                    {
+                      localNotice
+                    }
+                  </p>
+                )}
+              </div>
+
+
+              <aside className="investor-deal-column">
+                <p className="card-label">
+                  LIVE DEAL TERMS
+                </p>
+
+                <h3>
+                  What happens if you sign?
+                </h3>
+
+
+                {dealPreview ? (
+                  <>
+                    <div className="investor-deal-main">
+                      <span>
+                        INVESTOR CAPITAL
+                      </span>
+
+                      <strong>
+                        {
+                          formatCurrency(
+                            dealPreview
+                              .investmentAmount
+                          )
+                        }
+                      </strong>
+                    </div>
+
+
+                    <div className="investor-deal-grid">
+                      <div>
+                        <span>
+                          EQUITY SOLD
+                        </span>
+
+                        <strong>
+                          {
+                            dealPreview
+                              .equitySold
+                          }%
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          FOUNDER AFTER
+                        </span>
+
+                        <strong>
+                          {
+                            Number(
+                              dealPreview
+                                .founderAfter
+                            ).toFixed(
+                              1
+                            )
+                          }%
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          DEBT REPAID
+                        </span>
+
+                        <strong>
+                          {
+                            formatCurrency(
+                              dealPreview
+                                .actualDebtPaydown
+                            )
+                          }
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          WORKING CAPITAL
+                        </span>
+
+                        <strong>
+                          {
+                            formatCurrency(
+                              dealPreview
+                                .workingCapital
+                            )
+                          }
+                        </strong>
+                      </div>
+                    </div>
+
+
+                    <div className="investor-deal-impact">
+                      <div>
+                        <span>
+                          CASH
+                        </span>
+
+                        <strong>
+                          {
+                            formatCurrency(
+                              dealPreview
+                                .cashBefore
+                            )
+                          }
+                          {" → "}
+                          {
+                            formatCurrency(
+                              dealPreview
+                                .cashAfter
+                            )
+                          }
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          DEBT
+                        </span>
+
+                        <strong>
+                          {
+                            formatCurrency(
+                              dealPreview
+                                .debtBefore
+                            )
+                          }
+                          {" → "}
+                          {
+                            formatCurrency(
+                              dealPreview
+                                .debtAfter
+                            )
+                          }
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          MONTHLY DEBT SERVICE
+                        </span>
+
+                        <strong>
+                          {
+                            formatCurrency(
+                              dealPreview
+                                .monthlyDebtServiceBefore
+                            )
+                          }
+                          {" → "}
+                          {
+                            formatCurrency(
+                              dealPreview
+                                .monthlyDebtServiceAfter
+                            )
+                          }
+                        </strong>
+                      </div>
+                    </div>
+
+
+                    <div className="investor-control-box">
+                      <span>
+                        CONTROL & GOVERNANCE
+                      </span>
+
+                      <p>
+                        {
+                          dealPreview
+                            .governance
+                        }
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <p>
+                    Negotiate terms to see the proposed ownership and financial impact.
+                  </p>
+                )}
+
+
+                <div className="investor-reality-box">
+                  <span>
+                    BUSINESS REALITY
+                  </span>
+
+                  <p>
+                    The investor is not giving the company free money.
+                    They are buying part of the business because they are
+                    accepting risk the existing lenders will no longer accept.
+                  </p>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </div>
+      )}
+    </>
+  );
+}
+
+
 function RecoveryDecisionCentre({
+  simulation,
   recoveryState,
   recoveryActions,
   selectedRecoveryActionId,
@@ -5913,6 +12526,37 @@ function RecoveryDecisionCentre({
   recoveryHistory,
   lastRecoveryOutcome,
 }) {
+
+
+  const distressDuringRecovery =
+    getDistressCapitalState(
+      simulation
+    );
+
+
+  const structuralDecisionToday =
+    Boolean(
+      simulation
+        ?.distressCapital
+        ?.resolved
+    ) &&
+    Number(
+      simulation
+        ?.distressCapital
+        ?.resolvedDay
+    ) ===
+    Number(
+      simulation?.currentDay
+    );
+
+
+  if (
+    distressDuringRecovery.active ||
+    structuralDecisionToday
+  ) {
+    return null;
+  }
+
   return (
     <section
       id="recovery-actions"
@@ -6982,7 +13626,7 @@ function BusinessWorldView({
           </strong>
 
           <small>
-            Day{" "}
+            Month{" "}
             {Math.min(
               simulation.currentDay,
               MAX_MVP_DAY
@@ -7421,7 +14065,7 @@ function ManagementTeamView({
           </strong>
 
           <small>
-            Day{" "}
+            Month{" "}
             {Math.min(
               simulation.currentDay,
               MAX_MVP_DAY
@@ -7820,7 +14464,7 @@ function CommandCentreView({
             </strong>
 
             <small>
-              Day{" "}
+              Month{" "}
               {Math.min(
                 simulation.currentDay,
                 MAX_MVP_DAY
@@ -9040,6 +15684,449 @@ function RelationshipCallbackCard({
 }
 
 
+
+const negotiationCurrency = (
+  value
+) =>
+  new Intl.NumberFormat(
+    "en-ZA",
+    {
+      style: "currency",
+      currency: "ZAR",
+      maximumFractionDigits: 0,
+    }
+  ).format(
+    Number(value || 0)
+  );
+
+
+const clampNegotiationValue = (
+  value,
+  minimum,
+  maximum
+) =>
+  Math.max(
+    minimum,
+    Math.min(
+      maximum,
+      Number(value || 0)
+    )
+  );
+
+
+function getAllConversationResponses(
+  conversation
+) {
+  if (
+    !conversation?.steps
+  ) {
+    return [];
+  }
+
+
+  return Object.values(
+    conversation.steps
+  ).flatMap(
+    (step) =>
+      step?.responses || []
+  );
+}
+
+
+function getNegotiationInvoiceAmount(
+  conversation
+) {
+  if (
+    conversation?.id !==
+    "customer-payment"
+  ) {
+    return 0;
+  }
+
+
+  const responses =
+    getAllConversationResponses(
+      conversation
+    );
+
+
+  return responses.reduce(
+    (
+      largest,
+      response
+    ) => {
+      const effects =
+        response
+          ?.businessEffects ||
+        {};
+
+
+      const receivableMovement =
+        Math.abs(
+          Number(
+            effects.receivables ||
+            0
+          )
+        );
+
+
+      const cashMovement =
+        Math.abs(
+          Number(
+            effects.cash ||
+            0
+          )
+        );
+
+
+      return Math.max(
+        largest,
+        receivableMovement,
+        cashMovement
+      );
+    },
+    0
+  );
+}
+
+
+function enrichNegotiationText(
+  text,
+  invoiceAmount
+) {
+  if (
+    !text ||
+    !invoiceAmount
+  ) {
+    return text;
+  }
+
+
+  return String(
+    text
+  ).replace(
+    /(\d+)%/g,
+    (
+      original,
+      percentage
+    ) => {
+      const amount =
+        invoiceAmount *
+        (
+          Number(
+            percentage
+          ) /
+          100
+        );
+
+
+      return `${percentage}% (${negotiationCurrency(
+        amount
+      )})`;
+    }
+  );
+}
+
+
+function getNegotiationStrategy(
+  response
+) {
+  const tone =
+    String(
+      response?.tone ||
+      ""
+    ).toLowerCase();
+
+
+  if (
+    tone.includes(
+      "hard"
+    )
+  ) {
+    return {
+      label:
+        "COLLECTION FIRST",
+
+      description:
+        "Prioritise immediate cash collection, even if the relationship comes under pressure.",
+
+      symbol: "!",
+    };
+  }
+
+
+  if (
+    tone.includes(
+      "firm"
+    )
+  ) {
+    return {
+      label:
+        "FIRM POSITION",
+
+      description:
+        "Set a clear commercial boundary before considering compromise.",
+
+      symbol: "◆",
+    };
+  }
+
+
+  if (
+    tone.includes(
+      "problem"
+    ) ||
+    tone.includes(
+      "collabor"
+    )
+  ) {
+    return {
+      label:
+        "BALANCED DEAL",
+
+      description:
+        "Protect liquidity while keeping the commercial relationship workable.",
+
+      symbol: "↔",
+    };
+  }
+
+
+  if (
+    tone.includes(
+      "support"
+    )
+  ) {
+    return {
+      label:
+        "RELATIONSHIP FIRST",
+
+      description:
+        "Protect goodwill and give the other party additional flexibility.",
+
+      symbol: "♡",
+    };
+  }
+
+
+  if (
+    tone.includes(
+      "curious"
+    )
+  ) {
+    return {
+      label:
+        "DIAGNOSE FIRST",
+
+      description:
+        "Understand the other party's constraint before committing to a deal.",
+
+      symbol: "?",
+    };
+  }
+
+
+  if (
+    tone.includes(
+      "structured"
+    )
+  ) {
+    return {
+      label:
+        "STRUCTURED DEAL",
+
+      description:
+        "Break the obligation into clear payment milestones.",
+
+      symbol: "≡",
+    };
+  }
+
+
+  if (
+    tone.includes(
+      "commercial"
+    )
+  ) {
+    return {
+      label:
+        "COMMERCIAL TRADE",
+
+      description:
+        "Give up some value to accelerate cash collection.",
+
+      symbol: "↗",
+    };
+  }
+
+
+  if (
+    tone.includes(
+      "professional"
+    )
+  ) {
+    return {
+      label:
+        "FORMAL AGREEMENT",
+
+      description:
+        "Turn the compromise into a documented commercial commitment.",
+
+      symbol: "✓",
+    };
+  }
+
+
+  return {
+    label:
+      "MANAGEMENT RESPONSE",
+
+    description:
+      "Choose the response that best protects the business given the current situation.",
+
+    symbol: "→",
+  };
+}
+
+
+function findSelectedConversationResponse(
+  conversation,
+  session
+) {
+  const responses =
+    getAllConversationResponses(
+      conversation
+    );
+
+
+  const entrepreneurMessages =
+    (
+      session?.messages ||
+      []
+    ).filter(
+      (message) =>
+        message.type ===
+        "entrepreneur"
+    );
+
+
+  const latest =
+    entrepreneurMessages[
+      entrepreneurMessages.length -
+      1
+    ];
+
+
+  if (!latest) {
+    return null;
+  }
+
+
+  return (
+    responses.find(
+      (response) =>
+        response.id ===
+        latest.responseId
+    ) ||
+    responses.find(
+      (response) =>
+        response.text ===
+        latest.text
+    ) ||
+    null
+  );
+}
+
+
+function getRelationshipDirection(
+  session
+) {
+  const trust =
+    Number(
+      session?.trustChange ||
+      0
+    );
+
+
+  const sentiment =
+    Number(
+      session?.sentimentChange ||
+      0
+    );
+
+
+  const total =
+    trust +
+    sentiment;
+
+
+  if (
+    total >= 12
+  ) {
+    return {
+      label:
+        "Strengthening",
+      tone:
+        "strong",
+      message:
+        "The conversation is building confidence in the relationship.",
+    };
+  }
+
+
+  if (
+    total >= 4
+  ) {
+    return {
+      label:
+        "Improving",
+      tone:
+        "positive",
+      message:
+        "The relationship is responding positively to your approach.",
+    };
+  }
+
+
+  if (
+    total <= -14
+  ) {
+    return {
+      label:
+        "At risk",
+      tone:
+        "danger",
+      message:
+        "Your commercial position may be damaging the relationship.",
+    };
+  }
+
+
+  if (
+    total <= -4
+  ) {
+    return {
+      label:
+        "Under pressure",
+      tone:
+        "warning",
+      message:
+        "The relationship is becoming more cautious.",
+    };
+  }
+
+
+  return {
+    label:
+      "Stable",
+    tone:
+      "neutral",
+    message:
+      "The relationship has not shifted materially yet.",
+  };
+}
+
+
 function ConversationCentre({
   conversation,
   session,
@@ -9049,17 +16136,126 @@ function ConversationCentre({
   handleResponse,
   handleComplete,
   notice,
+  simulation,
 }) {
-  if (completedToday) {
+  const invoiceAmount =
+    getNegotiationInvoiceAmount(
+      conversation
+    );
+
+
+  const isCustomerPayment =
+    conversation?.id ===
+    "customer-payment";
+
+
+  const relationship =
+    getRelationshipDirection(
+      session
+    );
+
+
+  const selectedResponse =
+    findSelectedConversationResponse(
+      conversation,
+      session
+    );
+
+
+  const selectedEffects =
+    selectedResponse
+      ?.businessEffects ||
+    {};
+
+
+  const collectedNow =
+    Math.max(
+      0,
+      Number(
+        selectedEffects.cash ||
+        0
+      )
+    );
+
+
+  const receivableReduction =
+    Math.abs(
+      Math.min(
+        0,
+        Number(
+          selectedEffects
+            .receivables ||
+          0
+        )
+      )
+    );
+
+
+  const remainingInvoice =
+    invoiceAmount
+      ? Math.max(
+          0,
+          invoiceAmount -
+            receivableReduction
+        )
+      : 0;
+
+
+  const commercialCost =
+    Math.abs(
+      Math.min(
+        0,
+        Number(
+          selectedEffects.revenue ||
+          0
+        )
+      )
+    );
+
+
+  const businessCash =
+    Number(
+      simulation
+        ?.business
+        ?.cash ||
+      0
+    );
+
+
+  const businessReceivables =
+    Number(
+      simulation
+        ?.business
+        ?.receivables ||
+      0
+    );
+
+
+  const customerSatisfaction =
+    Number(
+      simulation
+        ?.business
+        ?.customerSatisfaction ||
+      0
+    );
+
+
+  // ========================================================
+  // ALREADY COMPLETED
+  // ========================================================
+
+  if (
+    completedToday
+  ) {
     return (
-      <section className="conversation-centre conversation-complete-card">
-        <div className="conversation-complete-icon">
+      <section className="executive-negotiation negotiation-complete-card">
+        <div className="negotiation-complete-mark">
           ✓
         </div>
 
         <div>
           <p className="card-label">
-            CONVERSATION COMPLETE
+            NEGOTIATION RECORDED
           </p>
 
           <h2>
@@ -9067,10 +16263,10 @@ function ConversationCentre({
           </h2>
 
           <p>
-            This conversation has
-            already influenced the
-            relationship and business
-            today.
+            The commercial and relationship
+            effects from this conversation
+            are now part of your business
+            history.
           </p>
         </div>
       </section>
@@ -9078,13 +16274,17 @@ function ConversationCentre({
   }
 
 
+  // ========================================================
+  // INTRO
+  // ========================================================
+
   if (!session) {
     return (
-      <section className="conversation-centre conversation-intro">
-        <div className="conversation-intro-top">
+      <section className="executive-negotiation negotiation-intro">
+        <div className="negotiation-intro-heading">
           <div>
             <p className="card-label">
-              LIVE CONVERSATION
+              EXECUTIVE CONVERSATION
             </p>
 
             <h2>
@@ -9096,27 +16296,102 @@ function ConversationCentre({
             </p>
           </div>
 
-          <span className="conversation-live-badge">
+          <div className="negotiation-live-chip">
+            <span></span>
             INTERACTIVE
-          </span>
+          </div>
         </div>
 
-        <div className="conversation-opening-preview">
-          <div className="conversation-avatar">
-            {conversation.opening.speaker
-              .split(" ")
-              .map(
-                (part) =>
-                  part[0]
-              )
-              .slice(0, 2)
-              .join("")}
+
+        {isCustomerPayment && (
+          <div className="negotiation-stakes-grid">
+            <div className="negotiation-stake primary">
+              <span>
+                OUTSTANDING INVOICE
+              </span>
+
+              <strong>
+                {
+                  negotiationCurrency(
+                    invoiceAmount
+                  )
+                }
+              </strong>
+
+              <small>
+                Amount currently exposed
+              </small>
+            </div>
+
+
+            <div className="negotiation-stake">
+              <span>
+                COMPANY CASH
+              </span>
+
+              <strong>
+                {
+                  negotiationCurrency(
+                    businessCash
+                  )
+                }
+              </strong>
+
+              <small>
+                Current liquidity
+              </small>
+            </div>
+
+
+            <div className="negotiation-stake">
+              <span>
+                TOTAL RECEIVABLES
+              </span>
+
+              <strong>
+                {
+                  negotiationCurrency(
+                    businessReceivables
+                  )
+                }
+              </strong>
+
+              <small>
+                Money customers still owe
+              </small>
+            </div>
+          </div>
+        )}
+
+
+        <div className="negotiation-brief">
+          <div className="negotiation-avatar large">
+            {
+              conversation
+                .opening
+                .speaker
+                .split(" ")
+                .map(
+                  (part) =>
+                    part[0]
+                )
+                .slice(
+                  0,
+                  2
+                )
+                .join("")
+            }
           </div>
 
           <div>
+            <span>
+              THE OTHER PARTY SAYS
+            </span>
+
             <strong>
               {
-                conversation.opening
+                conversation
+                  .opening
                   .speaker
               }
             </strong>
@@ -9124,20 +16399,42 @@ function ConversationCentre({
             <p>
               “
               {
-                conversation.opening
-                  .text
+                enrichNegotiationText(
+                  conversation
+                    .opening
+                    .text,
+                  invoiceAmount
+                )
               }
               ”
             </p>
           </div>
         </div>
 
+
+        <div className="negotiation-management-note">
+          <span>
+            YOUR ROLE
+          </span>
+
+          <p>
+            There may not be one perfect
+            answer. Protect the business,
+            understand the trade-offs and
+            negotiate the best workable
+            outcome.
+          </p>
+        </div>
+
+
         <button
           type="button"
-          className="conversation-start-button"
-          onClick={handleStart}
+          className="negotiation-start-button"
+          onClick={
+            handleStart
+          }
         >
-          Start Conversation
+          Enter Negotiation
           <span>→</span>
         </button>
       </section>
@@ -9145,9 +16442,13 @@ function ConversationCentre({
   }
 
 
+  // ========================================================
+  // LIVE NEGOTIATION
+  // ========================================================
+
   return (
-    <section className="conversation-centre">
-      <div className="conversation-header">
+    <section className="executive-negotiation">
+      <header className="negotiation-header">
         <div>
           <p className="card-label">
             LIVE NEGOTIATION
@@ -9158,175 +16459,761 @@ function ConversationCentre({
           </h2>
 
           <p>
-            Your wording affects both
-            the commercial result and
-            the relationship.
+            Your wording changes both the
+            commercial outcome and the
+            relationship.
           </p>
         </div>
 
-        <span className="conversation-live-indicator">
-          LIVE
-        </span>
-      </div>
+        <div className="negotiation-header-status">
+          <span className="negotiation-live-chip">
+            <i></i>
+            LIVE
+          </span>
+
+          <span
+            className={`negotiation-relationship-state ${relationship.tone}`}
+          >
+            {relationship.label}
+          </span>
+        </div>
+      </header>
 
 
-      <div className="conversation-thread">
-        {session.messages.map(
-          (message) => (
-            <div
-              key={message.id}
-              className={`conversation-message conversation-message-${message.type}`}
-            >
-              <div className="conversation-message-avatar">
-                {message.type ===
-                "entrepreneur"
-                  ? "YOU"
-                  : message.speaker
-                      .split(" ")
-                      .map(
-                        (part) =>
-                          part[0]
-                      )
-                      .slice(0, 2)
-                      .join("")}
-              </div>
+      {isCustomerPayment && (
+        <div className="negotiation-command-bar">
+          <div>
+            <span>
+              INVOICE AT STAKE
+            </span>
 
-              <div className="conversation-message-body">
-                <div>
-                  <strong>
-                    {
-                      message.speaker
-                    }
-                  </strong>
+            <strong>
+              {
+                negotiationCurrency(
+                  invoiceAmount
+                )
+              }
+            </strong>
+          </div>
 
-                  {message.tone && (
-                    <span>
-                      {message.tone}
-                    </span>
-                  )}
-                </div>
+          <div>
+            <span>
+              BUSINESS CASH
+            </span>
 
-                <p>
-                  {message.text}
-                </p>
-              </div>
-            </div>
-          )
-        )}
-      </div>
+            <strong>
+              {
+                negotiationCurrency(
+                  businessCash
+                )
+              }
+            </strong>
+          </div>
 
+          <div>
+            <span>
+              RECEIVABLES
+            </span>
 
-      {!session.completed && (
-        <div className="conversation-response-area">
-          <p className="card-label">
-            HOW DO YOU RESPOND?
-          </p>
+            <strong>
+              {
+                negotiationCurrency(
+                  businessReceivables
+                )
+              }
+            </strong>
+          </div>
 
-          <div className="conversation-response-list">
-            {responses.map(
-              (response) => (
-                <button
-                  type="button"
-                  key={response.id}
-                  onClick={() =>
-                    handleResponse(
-                      response
-                    )
-                  }
-                  className="conversation-response"
-                >
-                  <div>
-                    <span>
-                      {response.tone}
-                    </span>
+          <div>
+            <span>
+              RELATIONSHIP
+            </span>
 
-                    <strong>
-                      “
-                      {
-                        response.text
-                      }
-                      ”
-                    </strong>
-                  </div>
-
-                  <span>
-                    →
-                  </span>
-                </button>
-              )
-            )}
+            <strong>
+              {
+                relationship.label
+              }
+            </strong>
           </div>
         </div>
       )}
 
 
-      {session.completed && (
-        <div className="conversation-outcome">
-          <span>
-            NEGOTIATION RESULT
-          </span>
-
-          <h3>
+      <div className="negotiation-workspace">
+        <div className="negotiation-chat-panel">
+          <div className="negotiation-thread">
             {
-              session.outcome
-                ?.headline
-            }
-          </h3>
+              session.messages.map(
+                (
+                  message,
+                  index
+                ) => {
+                  const entrepreneur =
+                    message.type ===
+                    "entrepreneur";
 
-          <p>
-            {
-              session.outcome
-                ?.lesson
-            }
-          </p>
 
-          <div className="conversation-impact-summary">
-            <div>
-              <span>
-                TRUST
-              </span>
+                  const initials =
+                    entrepreneur
+                      ? "YOU"
+                      : message
+                          .speaker
+                          .split(" ")
+                          .map(
+                            (part) =>
+                              part[0]
+                          )
+                          .slice(
+                            0,
+                            2
+                          )
+                          .join("");
 
-              <strong
-                className={
-                  session.trustChange >=
-                  0
-                    ? "positive"
-                    : "negative"
+
+                  return (
+                    <div
+                      key={
+                        message.id ||
+                        index
+                      }
+                      className={`negotiation-message ${
+                        entrepreneur
+                          ? "from-you"
+                          : "from-them"
+                      }`}
+                    >
+                      <div className="negotiation-avatar">
+                        {initials}
+                      </div>
+
+                      <div className="negotiation-bubble">
+                        <div className="negotiation-message-meta">
+                          <strong>
+                            {
+                              entrepreneur
+                                ? "You"
+                                : message
+                                    .speaker
+                            }
+                          </strong>
+
+                          {
+                            message.tone &&
+                            (
+                              <span>
+                                {
+                                  message
+                                    .tone
+                                }
+                              </span>
+                            )
+                          }
+                        </div>
+
+                        <p>
+                          {
+                            enrichNegotiationText(
+                              message.text,
+                              invoiceAmount
+                            )
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  );
                 }
-              >
-                {session.trustChange >
-                0
-                  ? "+"
-                  : ""}
+              )
+            }
+          </div>
+
+
+          {!session.completed && (
+            <div className="negotiation-response-zone">
+              <div className="negotiation-response-heading">
+                <div>
+                  <span>
+                    YOUR MOVE
+                  </span>
+
+                  <h3>
+                    How do you respond?
+                  </h3>
+                </div>
+
+                <p>
+                  Think like the person
+                  responsible for both cash
+                  flow and the relationship.
+                </p>
+              </div>
+
+
+              <div className="negotiation-response-grid">
                 {
-                  session.trustChange
+                  responses.map(
+                    (
+                      response
+                    ) => {
+                      const strategy =
+                        getNegotiationStrategy(
+                          response
+                        );
+
+
+                      return (
+                        <button
+                          type="button"
+                          key={
+                            response.id
+                          }
+                          onClick={() =>
+                            handleResponse(
+                              response
+                            )
+                          }
+                          className="negotiation-response-card"
+                        >
+                          <div className="negotiation-response-top">
+                            <span className="negotiation-strategy-symbol">
+                              {
+                                strategy
+                                  .symbol
+                              }
+                            </span>
+
+                            <div>
+                              <small>
+                                {
+                                  strategy
+                                    .label
+                                }
+                              </small>
+
+                              <strong>
+                                {
+                                  response
+                                    .tone
+                                }
+                              </strong>
+                            </div>
+
+                            <span className="negotiation-response-arrow">
+                              →
+                            </span>
+                          </div>
+
+
+                          <blockquote>
+                            “
+                            {
+                              enrichNegotiationText(
+                                response
+                                  .text,
+                                invoiceAmount
+                              )
+                            }
+                            ”
+                          </blockquote>
+
+
+                          <p>
+                            {
+                              strategy
+                                .description
+                            }
+                          </p>
+                        </button>
+                      );
+                    }
+                  )
                 }
-              </strong>
+              </div>
+            </div>
+          )}
+        </div>
+
+
+        <aside className="negotiation-side-panel">
+          <div className="negotiation-side-heading">
+            <span>
+              NEGOTIATION POSITION
+            </span>
+
+            <strong>
+              {
+                session.completed
+                  ? "Deal reached"
+                  : "In progress"
+              }
+            </strong>
+          </div>
+
+
+          <div className="negotiation-relationship-card">
+            <div className="relationship-card-top">
+              <div>
+                <span>
+                  RELATIONSHIP DIRECTION
+                </span>
+
+                <strong>
+                  {
+                    relationship.label
+                  }
+                </strong>
+              </div>
+
+              <div
+                className={`relationship-pulse ${relationship.tone}`}
+              >
+                ●
+              </div>
             </div>
 
-            <div>
-              <span>
-                SENTIMENT
-              </span>
+            <p>
+              {
+                relationship.message
+              }
+            </p>
 
-              <strong
-                className={
-                  session.sentimentChange >=
-                  0
-                    ? "positive"
-                    : "negative"
-                }
-              >
-                {session.sentimentChange >
-                0
-                  ? "+"
-                  : ""}
-                {
-                  session.sentimentChange
-                }
-              </strong>
+
+            <div className="relationship-movement">
+              <div>
+                <span>
+                  TRUST
+                </span>
+
+                <strong
+                  className={
+                    session
+                      .trustChange >=
+                    0
+                      ? "positive"
+                      : "negative"
+                  }
+                >
+                  {
+                    session
+                      .trustChange >
+                    0
+                      ? "+"
+                      : ""
+                  }
+                  {
+                    session
+                      .trustChange
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  SENTIMENT
+                </span>
+
+                <strong
+                  className={
+                    session
+                      .sentimentChange >=
+                    0
+                      ? "positive"
+                      : "negative"
+                  }
+                >
+                  {
+                    session
+                      .sentimentChange >
+                    0
+                      ? "+"
+                      : ""
+                  }
+                  {
+                    session
+                      .sentimentChange
+                  }
+                </strong>
+              </div>
             </div>
           </div>
+
+
+          {isCustomerPayment && (
+            <div className="negotiation-financial-card">
+              <span>
+                COMMERCIAL EXPOSURE
+              </span>
+
+              <div>
+                <p>
+                  Original invoice
+                </p>
+
+                <strong>
+                  {
+                    negotiationCurrency(
+                      invoiceAmount
+                    )
+                  }
+                </strong>
+              </div>
+
+
+              {
+                selectedResponse &&
+                (
+                  <>
+                    <div>
+                      <p>
+                        Immediate cash
+                      </p>
+
+                      <strong className="positive">
+                        +
+                        {
+                          negotiationCurrency(
+                            collectedNow
+                          )
+                        }
+                      </strong>
+                    </div>
+
+                    <div>
+                      <p>
+                        Still outstanding
+                      </p>
+
+                      <strong>
+                        {
+                          negotiationCurrency(
+                            remainingInvoice
+                          )
+                        }
+                      </strong>
+                    </div>
+
+                    {
+                      commercialCost >
+                        0 &&
+                      (
+                        <div>
+                          <p>
+                            Commercial cost
+                          </p>
+
+                          <strong className="negative">
+                            -
+                            {
+                              negotiationCurrency(
+                                commercialCost
+                              )
+                            }
+                          </strong>
+                        </div>
+                      )
+                    }
+                  </>
+                )
+              }
+            </div>
+          )}
+
+
+          <div className="negotiation-adviser-card">
+            <span>
+              MANAGEMENT LENS
+            </span>
+
+            <p>
+              Cash collected today is only
+              one part of the decision.
+              Consider what remains unpaid,
+              what the agreement costs and
+              whether the relationship is
+              still commercially useful.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+
+      {session.completed && (
+        <div className="negotiation-outcome">
+          <div className="negotiation-outcome-heading">
+            <span>
+              NEGOTIATION RESULT
+            </span>
+
+            <h3>
+              {
+                session
+                  .outcome
+                  ?.headline
+              }
+            </h3>
+
+            <p>
+              {
+                session
+                  .outcome
+                  ?.lesson
+              }
+            </p>
+          </div>
+
+
+          {isCustomerPayment && (
+            <div className="negotiation-deal-summary">
+              <div>
+                <span>
+                  ORIGINAL INVOICE
+                </span>
+
+                <strong>
+                  {
+                    negotiationCurrency(
+                      invoiceAmount
+                    )
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  COLLECTED NOW
+                </span>
+
+                <strong className="positive">
+                  {
+                    negotiationCurrency(
+                      collectedNow
+                    )
+                  }
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  STILL OUTSTANDING
+                </span>
+
+                <strong>
+                  {
+                    negotiationCurrency(
+                      remainingInvoice
+                    )
+                  }
+                </strong>
+              </div>
+
+              {
+                commercialCost >
+                  0 &&
+                (
+                  <div>
+                    <span>
+                      COST OF DEAL
+                    </span>
+
+                    <strong className="negative">
+                      {
+                        negotiationCurrency(
+                          commercialCost
+                        )
+                      }
+                    </strong>
+                  </div>
+                )
+              }
+            </div>
+          )}
+
+
+          <div className="negotiation-impact-grid">
+            <article>
+              <span>
+                RELATIONSHIP
+              </span>
+
+              <strong>
+                {
+                  relationship.label
+                }
+              </strong>
+
+              <p>
+                Trust {
+                  session
+                    .trustChange >
+                  0
+                    ? "+"
+                    : ""
+                }
+                {
+                  session
+                    .trustChange
+                } · Sentiment {
+                  session
+                    .sentimentChange >
+                  0
+                    ? "+"
+                    : ""
+                }
+                {
+                  session
+                    .sentimentChange
+                }
+              </p>
+            </article>
+
+
+            {
+              Number(
+                selectedEffects
+                  .risk ||
+                0
+              ) !== 0 &&
+              (
+                <article>
+                  <span>
+                    BUSINESS RISK
+                  </span>
+
+                  <strong
+                    className={
+                      Number(
+                        selectedEffects
+                          .risk
+                      ) < 0
+                        ? "positive"
+                        : "negative"
+                    }
+                  >
+                    {
+                      Number(
+                        selectedEffects
+                          .risk
+                      ) > 0
+                        ? "+"
+                        : ""
+                    }
+                    {
+                      selectedEffects
+                        .risk
+                    }
+                  </strong>
+
+                  <p>
+                    Impact created by
+                    this agreement.
+                  </p>
+                </article>
+              )
+            }
+
+
+            {
+              Number(
+                selectedEffects
+                  .customerSatisfaction ||
+                0
+              ) !== 0 &&
+              (
+                <article>
+                  <span>
+                    CUSTOMER EFFECT
+                  </span>
+
+                  <strong
+                    className={
+                      Number(
+                        selectedEffects
+                          .customerSatisfaction
+                      ) >= 0
+                        ? "positive"
+                        : "negative"
+                    }
+                  >
+                    {
+                      Number(
+                        selectedEffects
+                          .customerSatisfaction
+                      ) > 0
+                        ? "+"
+                        : ""
+                    }
+                    {
+                      selectedEffects
+                        .customerSatisfaction
+                    }
+                  </strong>
+
+                  <p>
+                    Relationship impact
+                    recorded in the
+                    business.
+                  </p>
+                </article>
+              )
+            }
+          </div>
+
+
+          <div className="negotiation-debrief">
+            <div>
+              <span>
+                WHAT YOU ACHIEVED
+              </span>
+
+              <p>
+                {
+                  collectedNow > 0
+                    ? `You secured ${negotiationCurrency(
+                        collectedNow
+                      )} of immediate cash from the negotiation.`
+                    : "You prioritised the relationship rather than securing immediate cash."
+                }
+              </p>
+            </div>
+
+
+            <div>
+              <span>
+                WHAT REMAINS EXPOSED
+              </span>
+
+              <p>
+                {
+                  isCustomerPayment
+                    ? remainingInvoice >
+                      0
+                      ? `${negotiationCurrency(
+                          remainingInvoice
+                        )} remains outstanding and still needs to be collected.`
+                      : "The invoice has been fully addressed by this outcome."
+                    : "The relationship consequence will continue into later business periods."
+                }
+              </p>
+            </div>
+
+
+            <div>
+              <span>
+                MANAGEMENT LESSON
+              </span>
+
+              <p>
+                A strong negotiation is
+                not simply the option
+                that collects the most
+                cash. It is the option
+                whose financial and
+                relationship trade-offs
+                the business can actually
+                afford.
+              </p>
+            </div>
+          </div>
+
 
           {notice && (
             <p className="notice">
@@ -9334,14 +17221,16 @@ function ConversationCentre({
             </p>
           )}
 
+
           <button
             type="button"
-            className="conversation-confirm-button"
+            className="negotiation-confirm-button"
             onClick={
               handleComplete
             }
           >
-            Confirm Conversation Outcome
+            Record Negotiation Outcome
+            <span>→</span>
           </button>
         </div>
       )}
@@ -9472,7 +17361,7 @@ function StorylinePathCard({
               </div>
             </div>
 
-            {currentDay < 6 && (
+            {currentDay < 12 && (
               <div className="storyline-warning">
                 <span>
                   STORYLINE IS NOT FIXED
@@ -9488,7 +17377,7 @@ function StorylinePathCard({
               </div>
             )}
 
-            {currentDay === 6 && (
+            {currentDay === 12 && (
               <div className="storyline-branch-arrived">
                 <span>
                   YOUR PATH CHANGED
@@ -11699,7 +19588,11 @@ function BusinessCreditLoanCentre({
             </span>
 
             <div className="loan-term-options">
-              {[12, 24, 36, 48, 60]
+              {(
+              simulation.currentDay === 2
+                ? [3, 6, 9, 12]
+                : [12, 24, 36, 48, 60]
+            )
                 .map(
                   (months) => (
                     <button
