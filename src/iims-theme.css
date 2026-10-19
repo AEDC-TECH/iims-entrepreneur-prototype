@@ -20703,3 +20703,1058 @@ button.danger strong {
     flex-direction: column;
   }
 }
+
+
+/* =========================================================
+   FINAL MVP
+   COMPLETE MOBILE RESPONSIVE LAYER
+   ---------------------------------------------------------
+   Desktop styling remains unchanged.
+   Tablet: <= 900px
+   Phone:  <= 640px
+========================================================= */
+
+
+/* =========================================================
+   GLOBAL SAFETY
+========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  /* -------------------------------------------------------
+     APP SHELL
+  ------------------------------------------------------- */
+
+  .app-shell {
+    display: block !important;
+
+    width: 100%;
+    min-height: 100vh;
+  }
+
+
+  /*
+   * Turn desktop sidebar into a mobile top navigation.
+   */
+  .sidebar {
+    position: sticky !important;
+
+    top: 0;
+    left: 0;
+
+    z-index: 1000;
+
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+
+    padding: 10px 12px !important;
+
+    border-right: 0 !important;
+    border-bottom:
+      1px solid #e5e8ef;
+
+    background:
+      rgba(255, 255, 255, 0.98);
+
+    backdrop-filter:
+      blur(15px);
+
+    overflow: visible !important;
+  }
+
+
+  .brand {
+    display: flex;
+    align-items: center;
+
+    margin-bottom: 9px !important;
+  }
+
+
+  .brand-mark {
+    width: 34px !important;
+    height: 34px !important;
+
+    flex: 0 0 34px;
+
+    font-size: 0.8rem !important;
+  }
+
+
+  .brand strong {
+    font-size: 0.9rem;
+  }
+
+
+  .brand span {
+    font-size: 0.62rem;
+  }
+
+
+  .side-nav {
+    display: flex !important;
+
+    gap: 6px;
+
+    width: 100%;
+
+    padding: 0 0 4px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling:
+      touch;
+  }
+
+
+  .side-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+
+  .nav-item {
+    flex: 0 0 auto;
+
+    width: auto !important;
+    min-width: max-content;
+
+    padding:
+      9px 12px !important;
+
+    border-radius:
+      10px !important;
+
+    white-space: nowrap;
+
+    font-size: 0.78rem !important;
+  }
+
+
+  /*
+   * Hide desktop sidebar footer on narrow screens.
+   */
+  .sidebar > div:last-child:not(.side-nav) {
+    max-width: 100%;
+  }
+
+
+  /* -------------------------------------------------------
+     MAIN PAGE
+  ------------------------------------------------------- */
+
+  .app-shell > main,
+  .main-content,
+  .app-main {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin-left: 0 !important;
+
+    padding:
+      20px 16px 60px !important;
+  }
+
+
+  /* -------------------------------------------------------
+     TOPBAR
+  ------------------------------------------------------- */
+
+  .topbar {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch !important;
+
+    gap: 14px;
+
+    width: 100%;
+  }
+
+
+  .topbar h1 {
+    font-size:
+      clamp(
+        1.9rem,
+        7vw,
+        2.7rem
+      ) !important;
+
+    line-height: 1.08;
+  }
+
+
+  .topbar-actions,
+  .topbar-right {
+    width: 100%;
+
+    display: flex;
+
+    justify-content:
+      space-between;
+
+    gap: 8px;
+  }
+
+
+  /* -------------------------------------------------------
+     GENERIC PANELS
+  ------------------------------------------------------- */
+
+  .page-panel,
+  .business-intelligence,
+  .completion-result,
+  .progress-year-page {
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    padding: 20px !important;
+  }
+
+
+  /* -------------------------------------------------------
+     COMMON GRIDS
+  ------------------------------------------------------- */
+
+  .dashboard-grid,
+  .metrics-grid,
+  .metric-grid,
+  .summary-grid,
+  .business-summary-grid,
+  .finance-grid,
+  .financial-grid,
+  .operations-grid,
+  .business-operations-grid,
+  .completion-quick-results,
+  .day2-working-capital-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      ) !important;
+  }
+
+
+  /* -------------------------------------------------------
+     OPERATIONS
+  ------------------------------------------------------- */
+
+  .operations-status-header,
+  .business-operations-header {
+    flex-direction: column;
+
+    align-items: flex-start !important;
+  }
+
+
+  /* -------------------------------------------------------
+     COMPLETION SCREEN
+  ------------------------------------------------------- */
+
+  .completion-score-area {
+    grid-template-columns:
+      1fr !important;
+
+    gap: 22px !important;
+  }
+
+
+  .completion-score-circle {
+    margin:
+      0 auto !important;
+  }
+
+
+  /* -------------------------------------------------------
+     PROGRESS
+  ------------------------------------------------------- */
+
+  .progress-year-header {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+
+  .progress-year-summary {
+    width: 100%;
+  }
+
+
+  /* -------------------------------------------------------
+     NEGOTIATIONS
+  ------------------------------------------------------- */
+
+  .investor-meeting-modal {
+    width: calc(
+      100vw - 20px
+    ) !important;
+
+    max-width: none !important;
+
+    margin:
+      10px auto 30px !important;
+  }
+
+
+  .investor-meeting-body {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  .investor-deal-column {
+    position: static !important;
+
+    max-height: none !important;
+
+    overflow: visible !important;
+
+    border-left: 0 !important;
+
+    border-top:
+      1px solid #e5e8ef;
+  }
+
+
+  .investor-conversation-column {
+    width: 100%;
+  }
+
+
+  /* -------------------------------------------------------
+     TABLES
+  ------------------------------------------------------- */
+
+  table {
+    display: block;
+
+    width: 100%;
+
+    overflow-x: auto;
+
+    -webkit-overflow-scrolling:
+      touch;
+  }
+
+}
+
+
+/* =========================================================
+   PHONE
+========================================================= */
+
+@media (max-width: 640px) {
+
+  body {
+    font-size: 15px;
+  }
+
+
+  /* -------------------------------------------------------
+     SIDEBAR / MOBILE NAV
+  ------------------------------------------------------- */
+
+  .sidebar {
+    padding:
+      8px 10px !important;
+  }
+
+
+  .brand {
+    margin-bottom:
+      7px !important;
+  }
+
+
+  .side-nav {
+    gap: 5px;
+  }
+
+
+  .nav-item {
+    padding:
+      8px 10px !important;
+
+    font-size:
+      0.72rem !important;
+  }
+
+
+  /* -------------------------------------------------------
+     MAIN
+  ------------------------------------------------------- */
+
+  .app-shell > main,
+  .main-content,
+  .app-main {
+    padding:
+      16px 10px 50px !important;
+  }
+
+
+  /* -------------------------------------------------------
+     HEADINGS
+  ------------------------------------------------------- */
+
+  h1 {
+    font-size:
+      clamp(
+        1.75rem,
+        9vw,
+        2.35rem
+      ) !important;
+  }
+
+
+  h2 {
+    line-height: 1.18;
+  }
+
+
+  /* -------------------------------------------------------
+     TOPBAR
+  ------------------------------------------------------- */
+
+  .topbar {
+    margin-bottom:
+      18px !important;
+  }
+
+
+  .topbar-actions,
+  .topbar-right {
+    display: grid;
+
+    grid-template-columns:
+      1fr auto;
+
+    align-items: center;
+  }
+
+
+  /* -------------------------------------------------------
+     ALL PRIMARY KPI GRIDS
+  ------------------------------------------------------- */
+
+  .dashboard-grid,
+  .metrics-grid,
+  .metric-grid,
+  .summary-grid,
+  .business-summary-grid,
+  .finance-grid,
+  .financial-grid,
+  .operations-grid,
+  .business-operations-grid,
+  .completion-quick-results,
+  .day2-working-capital-grid {
+    grid-template-columns:
+      1fr !important;
+
+    gap:
+      10px !important;
+  }
+
+
+  /*
+   * Also catch several native dashboard
+   * layouts that use generic grid children.
+   */
+  .dashboard-summary,
+  .financial-summary,
+  .business-summary {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  /* -------------------------------------------------------
+     CARDS
+  ------------------------------------------------------- */
+
+  .page-panel,
+  .business-intelligence,
+  .completion-result,
+  .progress-year-page {
+    padding:
+      16px !important;
+
+    border-radius:
+      16px !important;
+  }
+
+
+  /* -------------------------------------------------------
+     BUSINESS SUMMARY STRIP
+  ------------------------------------------------------- */
+
+  .business-summary-strip,
+  .summary-strip {
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      ) !important;
+
+    height: auto !important;
+  }
+
+
+  .business-summary-strip > *,
+  .summary-strip > * {
+    min-width: 0;
+
+    border-bottom:
+      1px solid
+      rgba(
+        255,
+        255,
+        255,
+        0.12
+      );
+  }
+
+
+  /* -------------------------------------------------------
+     BUTTONS / TOUCH TARGETS
+  ------------------------------------------------------- */
+
+  .primary-button,
+  .secondary-button,
+  .completion-results-button {
+    width: 100%;
+
+    min-height:
+      48px;
+
+    white-space: normal;
+
+    text-align: center;
+  }
+
+
+  button {
+    min-height:
+      42px;
+  }
+
+
+  /* -------------------------------------------------------
+     INPUTS
+  ------------------------------------------------------- */
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+
+    min-height:
+      46px;
+
+    font-size:
+      16px !important;
+  }
+
+
+  /*
+   * 16px prevents Safari from zooming into
+   * form fields automatically.
+   */
+
+
+  /* -------------------------------------------------------
+     OPERATIONAL HEALTH
+  ------------------------------------------------------- */
+
+  .operations-status-header,
+  .business-operations-header {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+
+  /*
+   * Keep big operating-capacity badge
+   * from floating beside heading.
+   */
+  .operations-status-header > :last-child,
+  .business-operations-header > :last-child {
+    width: 100%;
+
+    max-width: none;
+
+    text-align: center;
+  }
+
+
+  /* -------------------------------------------------------
+     PROGRESS JOURNAL
+  ------------------------------------------------------- */
+
+  .progress-year-page {
+    padding:
+      14px !important;
+  }
+
+
+  .progress-year-card {
+    grid-template-columns:
+      56px minmax(0, 1fr);
+
+    min-height:
+      120px;
+  }
+
+
+  .progress-year-number strong {
+    font-size:
+      1.35rem;
+  }
+
+
+  .progress-year-number span {
+    font-size:
+      0.48rem;
+  }
+
+
+  .progress-year-content {
+    min-width: 0;
+
+    padding:
+      14px 12px;
+  }
+
+
+  .progress-year-card-top {
+    flex-direction: column;
+
+    gap: 7px;
+  }
+
+
+  .progress-year-content h3 {
+    font-size:
+      0.96rem;
+
+    word-break:
+      break-word;
+  }
+
+
+  .progress-year-status {
+    align-self:
+      flex-start;
+  }
+
+
+  .progress-year-focus {
+    flex-wrap: wrap;
+  }
+
+
+  /* -------------------------------------------------------
+     COMPLETION / RESULT SCREEN
+  ------------------------------------------------------- */
+
+  .completion-result {
+    padding:
+      20px 14px !important;
+  }
+
+
+  .completion-result-top h1 {
+    font-size:
+      clamp(
+        1.8rem,
+        9vw,
+        2.35rem
+      ) !important;
+  }
+
+
+  .completion-score-area {
+    display: flex !important;
+
+    flex-direction:
+      column !important;
+
+    align-items:
+      stretch !important;
+  }
+
+
+  .completion-score-circle {
+    width:
+      190px !important;
+
+    height:
+      190px !important;
+
+    margin:
+      0 auto !important;
+  }
+
+
+  .completion-score-copy {
+    text-align:
+      center;
+  }
+
+
+  .completion-quick-results {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  /* -------------------------------------------------------
+     DAY 2 WORKING CAPITAL
+  ------------------------------------------------------- */
+
+  .day2-working-capital-context {
+    padding:
+      16px;
+
+    border-radius:
+      15px;
+  }
+
+
+  .day2-working-capital-heading {
+    flex-direction:
+      column;
+  }
+
+
+  .day2-gap-badge {
+    width:
+      100%;
+
+    min-width:
+      0;
+  }
+
+
+  /* -------------------------------------------------------
+     LOAN / FINANCE CENTRES
+  ------------------------------------------------------- */
+
+  .loan-learning-centre,
+  .loan-payment-decision-centre,
+  .business-credit-loan-centre,
+  .manage-loan-centre {
+    width:
+      100%;
+
+    padding:
+      15px !important;
+
+    overflow:
+      hidden;
+  }
+
+
+  .loan-account-grid,
+  .loan-summary-grid,
+  .loan-payment-options,
+  .loan-affordability-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  /* -------------------------------------------------------
+     CONVERSATION CENTRE
+  ------------------------------------------------------- */
+
+  .conversation-centre {
+    width:
+      100%;
+
+    padding:
+      14px !important;
+  }
+
+
+  .conversation-message,
+  .conversation-bubble {
+    max-width:
+      92% !important;
+  }
+
+
+  .conversation-response-options,
+  .conversation-response-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  /* -------------------------------------------------------
+     INVESTOR / RESCUE CAPITAL MODAL
+  ------------------------------------------------------- */
+
+  .investor-meeting-overlay {
+    padding:
+      0 !important;
+
+    align-items:
+      flex-start !important;
+  }
+
+
+  .investor-meeting-modal {
+    width:
+      100vw !important;
+
+    min-height:
+      100vh;
+
+    margin:
+      0 !important;
+
+    border-radius:
+      0 !important;
+  }
+
+
+  .investor-meeting-header {
+    position:
+      sticky;
+
+    top:
+      0;
+
+    padding:
+      16px 14px !important;
+
+    border-radius:
+      0 !important;
+  }
+
+
+  .investor-meeting-header h2 {
+    font-size:
+      1.35rem;
+  }
+
+
+  .investor-meeting-body {
+    display:
+      block !important;
+  }
+
+
+  .investor-conversation-column,
+  .investor-deal-column {
+    width:
+      100%;
+
+    padding:
+      16px 14px !important;
+  }
+
+
+  .investor-deal-column {
+    position:
+      static !important;
+
+    max-height:
+      none !important;
+
+    overflow:
+      visible !important;
+  }
+
+
+  /* -------------------------------------------------------
+     MODAL TEXT / LONG MONEY VALUES
+  ------------------------------------------------------- */
+
+  .investor-meeting-modal strong,
+  .finance-v2 strong,
+  .completion-result strong {
+    overflow-wrap:
+      anywhere;
+  }
+
+
+  /* -------------------------------------------------------
+     REFLECTION
+  ------------------------------------------------------- */
+
+  .reflection-panel,
+  .reflection-card {
+    width:
+      100%;
+
+    padding:
+      15px !important;
+  }
+
+
+  /* -------------------------------------------------------
+     INBOX
+  ------------------------------------------------------- */
+
+  .inbox-layout {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  .full-inbox-list {
+    max-height:
+      none !important;
+  }
+
+
+  /* -------------------------------------------------------
+     RELATIONSHIPS
+  ------------------------------------------------------- */
+
+  .relationship-grid,
+  .relationship-dashboard-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  /* -------------------------------------------------------
+     REPORTS
+  ------------------------------------------------------- */
+
+  .report-grid,
+  .performance-report-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  /* -------------------------------------------------------
+     MANAGEMENT TEAM
+  ------------------------------------------------------- */
+
+  .team-grid,
+  .management-team-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  /* -------------------------------------------------------
+     SAFETY AGAINST HORIZONTAL OVERFLOW
+  ------------------------------------------------------- */
+
+  .page-panel,
+  section,
+  article,
+  div {
+    min-width:
+      0;
+  }
+
+
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  strong,
+  span {
+    overflow-wrap:
+      break-word;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 420px) {
+
+  .app-shell > main,
+  .main-content,
+  .app-main {
+    padding:
+      14px 8px 45px !important;
+  }
+
+
+  .business-summary-strip,
+  .summary-strip {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  .progress-year-card {
+    grid-template-columns:
+      50px minmax(0, 1fr);
+  }
+
+
+  .progress-year-content {
+    padding:
+      12px 10px;
+  }
+
+
+  .completion-score-circle {
+    width:
+      170px !important;
+
+    height:
+      170px !important;
+  }
+
+}
